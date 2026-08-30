@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.DS_Store
+*.local
+.env
+.env.*
+!.env.example
+.wrangler/
+coverage/
+npm-debug.log*
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts

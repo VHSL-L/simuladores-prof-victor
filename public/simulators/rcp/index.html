@@ -1,0 +1,1055 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Simulador de RCP | Prof. Victor Hugo Sant'Ana</title>
+<style>:root {
+  color-scheme: light dark;
+  background-color: var(
+    --background,
+    var(--color-background-primary, light-dark(rgb(255 255 255), rgb(24 24 24)))
+  ) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --color-background-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --card: color-mix(in oklab, var(--foreground) 5%, var(--background));
+  --card-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --popover: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255), rgb(45 45 45))
+  );
+  --popover-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --primary: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --primary-foreground: var(
+    --color-text-inverse,
+    light-dark(rgb(255 255 255), rgb(13 13 13))
+  );
+  --secondary: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%))
+  );
+  --secondary-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: var(
+    --color-text-secondary,
+    light-dark(rgb(26 28 31 / 49.4%), rgb(255 255 255 / 49.8%))
+  );
+  --accent: var(
+    --color-background-info,
+    light-dark(rgb(229 242 255), rgb(13 39 63))
+  );
+  --accent-foreground: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --destructive: var(
+    --color-text-warning,
+    light-dark(rgb(226 85 7), rgb(255 133 73))
+  );
+  --border: var(
+    --color-border-secondary,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+  --input: var(
+    --color-border-primary,
+    light-dark(
+      rgb(26 28 31 / 11.8%),
+      color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+    )
+  );
+  --ring: var(
+    --color-ring-primary,
+    light-dark(rgb(51 156 255), rgb(131 195 255 / 76%))
+  );
+  --font-size-base: var(--font-text-md-size, 14px);
+  --blue: light-dark(rgb(51 156 255), rgb(51 156 255));
+  --orange: light-dark(rgb(226 85 7), rgb(251 106 34));
+  --green: light-dark(rgb(0 162 64), rgb(64 201 119));
+  --red: light-dark(rgb(224 46 42), rgb(255 103 100));
+  --purple: light-dark(rgb(146 79 247), rgb(173 123 249));
+  --yellow: light-dark(rgb(255 195 0), rgb(255 210 64));
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, "Segoe UI", sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --radius: var(--border-radius-lg, 12.5px);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 17 17'%3E%3Cpath d='M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z'/%3E%3C/svg%3E");
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html > body {
+  /* Preserve MCP aliases for older inline renderers without creating :root cycles. */
+  --color-background-primary: var(
+    --background,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --color-text-primary: var(
+    --foreground,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --color-border-secondary: var(
+    --border,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+
+  margin: 0;
+  padding: 5px;
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans) !important;
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium, 500);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-responsive > .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead th {
+  padding-block: 8px;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 6px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align="right"]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align="center"]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: superellipse(1.5);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget > :not(.card, .progress) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress {
+  display: flex;
+  height: 6px;
+  margin-block: calc((var(--line-height-normal, 1.5em) - 6px) / 2);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+}
+
+.progress-bar {
+  height: 100%;
+  flex-shrink: 0;
+  border: 0;
+  background: var(--viz-series-1);
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls > .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls > .form-label > :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type="file"] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type="file"]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type="file"]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type="color"] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type="color"]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: superellipse(1.5);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type="checkbox"] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type="checkbox"]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: "";
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type="radio"] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type="radio"]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: "";
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+  [aria-pressed="true"],
+  [aria-selected="true"],
+  .is-selected
+) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed="true"], [aria-selected="true"], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget > svg {
+  width: 100%;
+}
+
+/* Model-authored chart rules can otherwise stretch icons after these styles load. */
+svg.lucide {
+  display: block;
+  width: 16px !important;
+  height: 16px !important;
+  flex: none;
+  margin: 0 !important;
+  stroke-width: 1.6;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html>body{padding:0}</style>
+</head>
+<body>
+<div id="megacode-prof-victor-sequencial" data-screen="case" aria-label="Megacode autoguiado do Prof. Victor">
+  <style>
+    #megacode-prof-victor-sequencial { max-width: 900px; margin: 0 auto; color: var(--foreground); }
+    #megacode-prof-victor-sequencial * { box-sizing: border-box; }
+    #megacode-prof-victor-sequencial [hidden] { display: none !important; }
+    #megacode-prof-victor-sequencial .ms-head { margin-bottom: 12px; }
+    #megacode-prof-victor-sequencial .ms-head h2 { margin: 0 0 2px; }
+    #megacode-prof-victor-sequencial .ms-muted { color: var(--muted-foreground); }
+    #megacode-prof-victor-sequencial .ms-shell { overflow: hidden; }
+    #megacode-prof-victor-sequencial .ms-case { padding: 14px; border-bottom: 1px solid var(--border); }
+    #megacode-prof-victor-sequencial .ms-kicker { color: var(--primary); font-size: 12px; font-weight: 750; letter-spacing: .06em; }
+    #megacode-prof-victor-sequencial .ms-case h3 { margin: 5px 0 3px; font-size: 19px; }
+    #megacode-prof-victor-sequencial .ms-board { overflow-x: auto; border-bottom: 1px solid var(--border); }
+    #megacode-prof-victor-sequencial .ms-board table { width: 100%; min-width: 670px; border-collapse: collapse; font-size: 12px; }
+    #megacode-prof-victor-sequencial .ms-board th { padding: 7px 5px; background: var(--foreground); color: var(--background); font-weight: 650; text-align: center; }
+    #megacode-prof-victor-sequencial .ms-board td { padding: 7px 5px; border-top: 1px solid var(--border); text-align: center; }
+    #megacode-prof-victor-sequencial .ms-board tr[data-current="true"] td { background: color-mix(in oklab, var(--primary) 9%, var(--background)); }
+    #megacode-prof-victor-sequencial .ms-empty { color: var(--muted-foreground); }
+    #megacode-prof-victor-sequencial .ms-stage { padding: 14px; }
+    #megacode-prof-victor-sequencial .ms-stage-top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; margin-bottom: 9px; }
+    #megacode-prof-victor-sequencial .ms-stage-top strong { font-size: 15px; }
+    #megacode-prof-victor-sequencial .ms-monitor { background: color-mix(in oklab, var(--red) 3%, var(--background)); border: 1px solid var(--border); padding: 8px; margin-bottom: 13px; }
+    #megacode-prof-victor-sequencial .ms-trace { width: 100%; height: 170px; display: block; }
+    #megacode-prof-victor-sequencial .ms-grid-minor { stroke: color-mix(in oklab, var(--red) 18%, transparent); stroke-width: .7; }
+    #megacode-prof-victor-sequencial .ms-grid-major { stroke: color-mix(in oklab, var(--red) 32%, transparent); stroke-width: 1; }
+    #megacode-prof-victor-sequencial .ms-wave { fill: none; stroke: var(--foreground); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+    #megacode-prof-victor-sequencial .ms-clinical { padding: 12px; background: var(--muted); border-left: 4px solid var(--primary); margin-bottom: 13px; }
+    #megacode-prof-victor-sequencial .ms-question { font-size: 18px; font-weight: 720; line-height: 1.3; margin-bottom: 11px; }
+    #megacode-prof-victor-sequencial .ms-options { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    #megacode-prof-victor-sequencial .ms-option { width: 100%; min-height: 44px; padding: 10px 12px; text-align: left; white-space: normal; line-height: 1.25; }
+    #megacode-prof-victor-sequencial .ms-option[data-wrong="true"] { border-color: var(--red); color: var(--red); }
+    #megacode-prof-victor-sequencial .ms-option[data-correct="true"] { border-color: var(--green); color: var(--green); }
+    #megacode-prof-victor-sequencial .ms-feedback { margin-top: 11px; padding: 10px 12px; border-left: 4px solid var(--primary); background: var(--muted); }
+    #megacode-prof-victor-sequencial .ms-feedback[data-tone="bad"] { border-left-color: var(--red); }
+    #megacode-prof-victor-sequencial .ms-feedback[data-tone="good"] { border-left-color: var(--green); }
+    #megacode-prof-victor-sequencial .ms-feedback strong { display: block; margin-bottom: 2px; }
+    #megacode-prof-victor-sequencial .ms-next { display: flex; justify-content: flex-end; margin-top: 10px; }
+    #megacode-prof-victor-sequencial .ms-hint { margin-top: 10px; }
+    #megacode-prof-victor-sequencial .ms-hint summary { cursor: pointer; color: var(--muted-foreground); }
+    #megacode-prof-victor-sequencial .ms-hint div { padding-top: 5px; }
+    #megacode-prof-victor-sequencial .ms-start { display: flex; justify-content: flex-end; margin-top: 12px; }
+    #megacode-prof-victor-sequencial .ms-debrief { padding: 14px; }
+    #megacode-prof-victor-sequencial .ms-debrief h3 { margin: 0 0 3px; }
+    #megacode-prof-victor-sequencial .ms-review { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; margin-top: 13px; }
+    #megacode-prof-victor-sequencial .ms-review ul { margin: 6px 0 0; padding-left: 20px; }
+    #megacode-prof-victor-sequencial .ms-review li { margin-top: 4px; }
+    #megacode-prof-victor-sequencial .ms-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; }
+    @media (max-width: 620px) {
+      #megacode-prof-victor-sequencial .ms-case, #megacode-prof-victor-sequencial .ms-stage, #megacode-prof-victor-sequencial .ms-debrief { padding: 11px; }
+      #megacode-prof-victor-sequencial .ms-trace { height: 112px; }
+      #megacode-prof-victor-sequencial .ms-question { font-size: 16px; }
+      #megacode-prof-victor-sequencial .ms-review { grid-template-columns: 1fr; }
+      #megacode-prof-victor-sequencial .ms-footer { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+
+  <header class="ms-head"><h2>Megacode do Prof. Victor</h2><div class="ms-muted">Simulação autoguiada de PCR</div></header>
+
+  <section class="card ms-shell">
+    <div class="ms-case"><div class="ms-kicker" id="ms-case-label">CASO CLÍNICO</div><h3 id="ms-case-title"></h3><div class="ms-muted" id="ms-case-detail"></div><div class="ms-start" id="ms-start-wrap"><button class="btn btn-primary" type="button" id="ms-start">Iniciar atendimento</button></div></div>
+
+    <div class="ms-board" id="ms-board" hidden>
+      <table aria-label="Resumo dos ciclos do atendimento"><thead><tr><th>Ciclo</th><th>Ritmo</th><th>Choque</th><th>RCP</th><th>Qualidade</th><th>Drogas</th><th>Outros</th></tr></thead><tbody id="ms-table-body"></tbody></table>
+    </div>
+
+    <div class="ms-stage" id="ms-stage" hidden>
+      <div class="ms-stage-top"><strong id="ms-stage-label"></strong><span class="ms-muted" id="ms-progress"></span></div>
+      <div class="ms-monitor" id="ms-monitor" hidden><svg class="ms-trace" viewBox="0 0 800 170" role="img" aria-label="Traçado eletrocardiográfico para identificação"><title>Traçado eletrocardiográfico para identificação</title><g id="ms-grid"></g><path class="ms-wave" id="ms-wave"></path></svg></div>
+      <div class="ms-clinical" id="ms-clinical" hidden></div>
+      <div class="ms-question" id="ms-question"></div>
+      <div class="ms-options" id="ms-options"></div>
+      <div class="ms-feedback" id="ms-feedback" hidden></div>
+      <div class="ms-next"><button class="btn btn-primary" type="button" id="ms-next" hidden>Continuar</button></div>
+      <details class="ms-hint" id="ms-hint-box"><summary>Preciso de uma pista</summary><div id="ms-hint"></div></details>
+    </div>
+
+    <div class="ms-debrief" id="ms-debrief" hidden>
+      <h3>Debriefing automático</h3><div class="ms-feedback" id="ms-final-feedback" aria-live="polite"></div><div class="ms-muted" id="ms-outcome"></div>
+      <div class="viz-grid" id="ms-stats"></div>
+      <div class="ms-review"><div><strong>Condutas demonstradas</strong><ul id="ms-good"></ul></div><div><strong>Pontos para repetir</strong><ul id="ms-improve"></ul></div></div>
+    </div>
+  </section>
+
+  <footer class="ms-footer"><span class="ms-muted">Traçados de FV, TV e assistolia adaptados de arquivos CC0 do Wikimedia Commons.</span><button class="btn" type="button" id="ms-new">Novo caso</button></footer>
+
+  <script>
+    (() => {
+      const root=document.getElementById('megacode-prof-victor-sequencial');
+      const $=s=>root.querySelector(s);
+      const els={caseLabel:$('#ms-case-label'),caseTitle:$('#ms-case-title'),caseDetail:$('#ms-case-detail'),startWrap:$('#ms-start-wrap'),start:$('#ms-start'),board:$('#ms-board'),tbody:$('#ms-table-body'),stage:$('#ms-stage'),stageLabel:$('#ms-stage-label'),progress:$('#ms-progress'),monitor:$('#ms-monitor'),grid:$('#ms-grid'),wave:$('#ms-wave'),clinical:$('#ms-clinical'),question:$('#ms-question'),options:$('#ms-options'),feedback:$('#ms-feedback'),finalFeedback:$('#ms-final-feedback'),next:$('#ms-next'),hintBox:$('#ms-hint-box'),hint:$('#ms-hint'),debrief:$('#ms-debrief'),outcome:$('#ms-outcome'),stats:$('#ms-stats'),good:$('#ms-good'),improve:$('#ms-improve'),newCase:$('#ms-new')};
+
+      const cases=[
+        {title:'Colapso no pronto-socorro',detail:'Homem de 58 anos apresenta dor torácica súbita, perde a consciência e está apneico, sem pulso central.',cause:'trombose coronária',sequence:['FV','FV','AESP','ORGANIZADO']},
+        {title:'PCR durante a triagem',detail:'Mulher de 64 anos, em hemodiálise, perde a consciência. Está apneica e sem pulso; faltou às duas últimas sessões.',cause:'hipercalemia',sequence:['TVSP','FV','AESP','ORGANIZADO']},
+        {title:'PCR no leito de internação',detail:'Homem de 71 anos internado por pneumonia é encontrado inconsciente, apneico e sem pulso. A máscara de oxigênio está deslocada.',cause:'hipóxia',sequence:['FV','AESP','AESP','ORGANIZADO']},
+        {title:'Colapso após procedimento',detail:'Mulher de 52 anos colapsa após retirada de acesso venoso central. Está apneica e sem pulso; houve dispneia súbita antes da PCR.',cause:'pneumotórax hipertensivo',sequence:['TVSP','AESP','AESP','ORGANIZADO']},
+        {title:'PCR após dor torácica',detail:'Homem de 67 anos, internado por síndrome coronariana, é encontrado inconsciente, apneico e sem pulso central.',cause:'trombose coronária',sequence:['FV','FV','FV','FV','AESP','ORGANIZADO']}
+      ];
+      const rhythmNames={FV:'FV',TVSP:'TV sem pulso',AESP:'AESP',ASSISTOLIA:'assistolia',ORGANIZADO:'ritmo organizado'};
+      const ecgPaths={FV:'m 0.264584,13.626 c 1.1610635,0.340167 1.7732257,-2.097784 2.845973,-0.979902 0.784659,0.817672 0.5772252,2.848727 1.7869872,2.816905 1.1676196,-0.03071 1.2313242,-2.172702 2.3669531,-1.808221 0.8983184,0.288316 1.7621218,1.420876 2.8371987,0.499336 0.760877,-0.652213 1.30276,-2.978859 2.49084,-2.042174 0.585681,0.461753 1.104377,2.092715 1.803968,1.401927 0.556496,-0.549494 1.500142,-2.32124 2.26736,-1.078263 0.437996,0.709602 1.350161,2.825042 1.984659,1.794349 0.616542,-1.001524 2.006281,-0.06673 2.718678,-0.676024 0.787274,-0.673337 2.111536,-1.559308 2.667961,-0.127312 0.371431,0.955901 1.601791,2.16001 2.423974,0.993302 0.714206,-1.013485 1.945313,-0.954316 2.844794,-0.05987 0.803788,0.799285 1.491154,-0.256859 1.798259,-0.989559 0.345732,-0.824855 0.247481,-2.144937 1.099697,-2.450799 1.217616,-0.437003 1.49794,1.297881 1.745287,2.107714 0.360161,1.179195 1.281291,0.02429 2.16768,-0.162383 1.081345,-0.227726 1.683349,1.332249 3.01674,0.364615 1.14017,-0.827415 2.125755,1.10531 3.124243,0.414039 0.844639,-0.584759 1.808685,-0.421634 2.643292,0.171627 0.674458,0.479423 2.009073,1.331411 2.404381,0.464136 0.493368,-1.082409 1.80382,-0.952592 2.596431,0.07015 0.766039,0.98846 1.473484,-0.534859 1.780876,-1.238855 0.362749,-0.830777 0.677938,-3.3439956 1.556194,-2.583976 0.948985,0.821227 0.547495,2.669096 1.647945,3.208014 1.018056,0.498567 1.987553,0.04143 3.144979,-0.120905 1.081331,-0.151662 2.10129,-0.734436 3.220345,-0.149314 1.38237,0.722804 3.331266,-0.796311 4.361836,0.458843 0.505524,0.61569 1.433699,1.919173 2.266873,0.858542 0.519621,-0.661477 1.277663,-3.000871 1.945488,-1.903128 0.410465,0.674706 1.253304,2.19132 2.050759,0.902807 0.498415,-0.80533 0.995635,-3.431139 2.084864,-2.250147 0.671301,0.727856 0.710501,2.320389 1.86021,2.296003 1.229361,-0.02608 2.450087,-0.483832 3.68911,-0.091 0,0 0.198373,0.04673 0.198373,0.04673 0,0 0.196408,0.0551 0.196408,0.0551',TVSP:'m 11.509375,24.209375 c 0,0 0.685389,-5.768153 1.058333,-8.466667 0.04889,-0.353757 0.158935,-3.034175 0.264584,-5.291666 0.160071,-3.4203914 1.574238,-6.9158105 2.381136,-7.4083337 0.992193,0.3970238 0.899712,5.1548501 1.94852,5.2658794 0.378342,0.085242 0.168368,-2.5020996 0.700148,-3.5794065 0.06672,2.208294 1.055612,19.4801938 1.055612,19.4801938 m 0,0 c 0,0 0.685389,-5.768153 1.058333,-8.466667 0.04889,-0.353757 0.158935,-3.034175 0.264584,-5.291666 0.160071,-3.4203914 1.574238,-6.9158105 2.381136,-7.4083337 0.992193,0.3970238 0.899712,5.1548501 1.94852,5.2658794 0.378342,0.085242 0.168368,-2.5020996 0.700148,-3.5794065 0.06672,2.208294 1.055612,19.4801938 1.055612,19.4801938 m 0,0 c 0,0 0.685389,-5.768153 1.058333,-8.466667 0.04889,-0.353757 0.158935,-3.034175 0.264584,-5.291666 0.160071,-3.4203914 1.574238,-6.9158105 2.381136,-7.4083337 0.992193,0.3970238 0.899712,5.1548501 1.94852,5.2658794 0.378342,0.085242 0.168368,-2.5020996 0.700148,-3.5794065 0.06672,2.208294 1.055612,19.4801938 1.055612,19.4801938 m 0,0 c 0,0 0.685389,-5.768153 1.058333,-8.466667 0.04889,-0.353757 0.158935,-3.034175 0.264584,-5.291666 0.160071,-3.4203914 1.574238,-6.9158105 2.381136,-7.4083337 0.992193,0.3970238 0.899712,5.1548501 1.94852,5.2658794 0.378342,0.085242 0.168368,-2.5020996 0.700148,-3.5794065 0.06672,2.208294 1.055612,19.4801938 1.055612,19.4801938 m 0,0 c 0,0 0.685389,-5.768153 1.058333,-8.466667 0.04889,-0.353757 0.158935,-3.034175 0.264584,-5.291666 0.160071,-3.4203914 1.574238,-6.9158105 2.381136,-7.4083337 0.992193,0.3970238 0.899712,5.1548501 1.94852,5.2658794 0.378342,0.085242 0.168368,-2.5020996 0.700148,-3.5794065 0.06672,2.208294 1.055612,19.4801938 1.055612,19.4801938 m 0,0 c 0,0 0.685389,-5.768153 1.058333,-8.466667 0.04889,-0.353757 0.158935,-3.034175 0.264584,-5.291666 0.160071,-3.4203914 1.574238,-6.9158105 2.381136,-7.4083337 0.992193,0.3970238 0.899712,5.1548501 1.94852,5.2658794 0.378342,0.085242 0.168368,-2.5020996 0.700148,-3.5794065 0.06672,2.208294 1.055612,19.4801938 1.055612,19.4801938 m 0,0 c 0,0 0.685389,-5.768153 1.058333,-8.466667 0.04889,-0.353757 0.158935,-3.034175 0.264584,-5.291666 0.160071,-3.4203914 1.574238,-6.9158105 2.381136,-7.4083337 0.992193,0.3970238 0.899712,5.1548501 1.94852,5.2658794 0.378342,0.085242 0.168368,-2.5020996 0.700148,-3.5794065 0.06672,2.208294 1.055612,19.4801938 1.055612,19.4801938 m 0,0 c 0,0 0.685389,-5.768153 1.058333,-8.466667 0.04889,-0.353757 0.158935,-3.034175 0.264584,-5.291666 0.160071,-3.4203914 1.574238,-6.9158105 2.381136,-7.4083337 0.992193,0.3970238 0.899712,5.1548501 1.94852,5.2658794 0.378342,0.085242 0.168368,-2.5020996 0.700148,-3.5794065 0.06672,2.208294 1.055612,19.4801938 1.055612,19.4801938 m 0,0 c 0,0 0.685389,-5.768153 1.058333,-8.466667 0.04889,-0.353757 0.158935,-3.034175 0.264584,-5.291666 0.160071,-3.4203914 1.574238,-6.9158105 2.381136,-7.4083337 0.992193,0.3970238 0.899712,5.1548501 1.94852,5.2658794 0.378342,0.085242 0.168368,-2.5020996 0.700148,-3.5794065 0.06672,2.208294 1.055612,19.4801938 1.055612,19.4801938 m 0,0 c 0,0 0.685389,-5.768153 1.058333,-8.466667 0.04889,-0.353757 0.158935,-3.034175 0.264584,-5.291666 0.160071,-3.4203914 1.574238,-6.9158105 2.381136,-7.4083337 0.992193,0.3970238 0.899712,5.1548501 1.94852,5.2658794 0.378342,0.085242 0.168368,-2.5020996 0.700148,-3.5794065 0.06672,2.208294 1.055612,19.4801938 1.055612,19.4801938 m 0,0 c 0,0 0.685389,-5.768153 1.058333,-8.466667 0.04889,-0.353757 0.158935,-3.034175 0.264584,-5.291666 0.160071,-3.4203914 1.574238,-6.9158105 2.381136,-7.4083337 0.992193,0.3970238 0.899712,5.1548501 1.94852,5.2658794 0.378342,0.085242 0.168368,-2.5020996 0.700148,-3.5794065 0.06672,2.208294 1.055612,19.4801938 1.055612,19.4801938 m 0,0 c 0,0 0.685389,-5.768153 1.058333,-8.466667 0.04889,-0.353757 0.158935,-3.034175 0.264584,-5.291666 0.160071,-3.4203914 1.574238,-6.9158105 2.381136,-7.4083337 0.992193,0.3970238 0.899712,5.1548501 1.94852,5.2658794 0.378342,0.085242 0.168368,-2.5020996 0.700148,-3.5794065 0.06672,2.208294 1.055611,19.4801938 1.055611,19.4801938',ASSISTOLIA:'m 0.264584,13.626 c 1.4674476,-0.05593 2.9360719,-0.197931 4.384556,0.1403 1.4614908,-0.02576 2.9192373,-0.237098 4.38457,-0.0576 1.649553,-0.05926 3.292924,-0.34603 4.94259,-0.081 1.30556,-0.09142 2.615729,-0.258531 3.9062,0.0811 1.963296,0.02763 3.934165,-0.202083 5.8993,-0.1276 1.955013,0.412556 3.929571,-0.14025 5.8992,0.1014 1.573112,0.0096 3.138136,-0.45377 4.7034,-0.0567 1.331437,0.02827 2.665864,-0.269896 3.986,0.0777 2.095531,0.01032 4.200386,-0.194793 6.2978,-0.0734 2.042045,0.21484 4.091321,-0.145643 6.1384,0.0397 1.35614,-0.109521 2.720798,-0.478822 4.0657,-0.0417 1.353734,0.132781 2.713954,-0.243201 4.0657,0.0678 2.760788,-0.08572 5.5272,-0.09334 8.2908,-0.0323 2.04732,-0.183806 4.120969,0.21369 6.1384,-0.2739 1.366824,-0.09223 2.688696,0.607645 4.0657,0.2304 0.825303,-0.09419 1.646362,0.0731 2.4713,0.0715'};
+      let state;
+
+      function option(text,correct=false,reason='',critical=false){return{text,correct,reason,critical};}
+      function rhythmStep(rhythm,cycle){
+        if(rhythm==='FV')return{cycle,kind:'rhythm',rhythm,label:`Ciclo ${cycle} · análise de ritmo`,question:'Qual é o ritmo e a conduta imediata?',hint:'O traçado é caótico, sem QRS identificável e sem padrão repetitivo.',options:[option('Fibrilação ventricular — desfibrilar com 200 J',true,'Ritmo chocável: desfibrile e retome a RCP imediatamente.'),option('AESP — checar pulso e retomar RCP',false,'Há atividade caótica sem complexos organizados; isso não é AESP.'),option('Assistolia — checar cabos e iniciar RCP',false,'O traçado apresenta atividade elétrica intensa e desorganizada.',true)],updates:{rhythm:'FV',shock:'Feito'}};
+        if(rhythm==='TVSP')return{cycle,kind:'rhythm',rhythm,label:`Ciclo ${cycle} · análise de ritmo`,question:'O paciente continua sem pulso. Qual é o ritmo e a conduta?',hint:'Os complexos são largos, regulares e repetem a mesma morfologia.',options:[option('TV sem pulso — desfibrilar com 200 J',true,'TV sem pulso é ritmo chocável.'),option('Taquicardia com pulso — cardioversão sincronizada',false,'O caso informa ausência de pulso; portanto, não é cardioversão sincronizada.',true),option('AESP — epinefrina e RCP sem choque',false,'O traçado é uma taquicardia ventricular organizada e o paciente não tem pulso.')],updates:{rhythm:'TVSP',shock:'Feito'}};
+        if(rhythm==='AESP')return{cycle,kind:'rhythm',rhythm,label:`Ciclo ${cycle} · análise de ritmo`,question:'Há atividade elétrica organizada no monitor. Qual é a próxima ação?',hint:'O monitor mostra eletricidade; é o paciente que define se existe circulação.',options:[option('Checar pulso central rapidamente',true,'Atividade elétrica organizada exige confirmação rápida de pulso.'),option('Desfibrilar com 200 J',false,'AESP não é ritmo chocável.',true),option('Iniciar cuidados pós-PCR imediatamente',false,'Ritmo organizado no monitor não confirma RCE sem pulso.')],updates:{rhythm:'AESP'}};
+        return{cycle,kind:'rhythm',rhythm,label:`Ciclo ${cycle} · análise de ritmo`,question:'O monitor mostra ritmo organizado. O que confirma a mudança de conduta?',hint:'Ritmo organizado não é sinônimo de circulação espontânea.',options:[option('Checar pulso central rapidamente',true,'Pulso presente confirma o retorno da circulação espontânea.'),option('Reiniciar compressões sem avaliação',false,'Confirme pulso antes de reiniciar a RCP.'),option('Desfibrilar com 200 J',false,'Ritmo organizado não é indicação de choque.',true)],updates:{rhythm:'Organizado',other:'Pulso'}};
+      }
+      function makeSteps(scenario){
+        const steps=[{cycle:0,kind:'clinical',label:'Reconhecimento da PCR',clinical:'Paciente inconsciente, apneico e sem pulso central.',question:'Quais são as ações iniciais?',hint:'As tarefas iniciais devem acontecer em paralelo.',options:[option('Iniciar RCP, ventilar com BVM/O₂ e conectar o monitor/desfibrilador',true,'PCR reconhecida: RCP, ventilação e monitorização devem começar sem demora.'),option('Aguardar o monitor antes de iniciar compressões',false,'A RCP não deve esperar pela monitorização.',true),option('Checar novamente o pulso por 30 segundos',false,'A checagem prolongada atrasa compressões.')],updates:{}}];
+        let lastEpinephrineIndex=null;
+        scenario.sequence.forEach((rhythm,index)=>{
+          const cycle=index+1;steps.push(rhythmStep(rhythm,cycle));
+          if(rhythm==='ORGANIZADO'){
+            steps.push({cycle,kind:'clinical',label:'Retorno da circulação espontânea',clinical:'Pulso central presente. PA 88/54 mmHg, SpO₂ 91%; paciente permanece inconsciente.',question:'Qual é a próxima prioridade?',hint:'O caso agora saiu do algoritmo de PCR.',options:[option('Iniciar cuidados pós-PCR: oxigenação, ventilação, pressão arterial e ECG de 12 derivações',true,'RCE reconhecido e cuidados pós-PCR iniciados.'),option('Reiniciar RCP por mais dois minutos',false,'Há pulso central presente.'),option('Aplicar novo choque de segurança',false,'Choque não é indicado após RCE.',true)],updates:{rCP:'Parou',other:'RCE'}});return;
+          }
+          if(rhythm==='FV'||rhythm==='TVSP'){
+            steps.push({cycle,kind:'clinical',label:`Ciclo ${cycle} · após o choque`,clinical:'Choque aplicado. O paciente permanece sem pulso.',question:'Qual deve ser a próxima ordem?',hint:'Não espere o monitor mostrar outro ritmo.',options:[option('Retomar RCP imediatamente',true,'A RCP deve ser retomada imediatamente após o choque.'),option('Checar pulso imediatamente',false,'A checagem de pulso após o choque prolonga a pausa.'),option('Aguardar nova análise do monitor',false,'Não se aguarda o monitor após o choque.',true)],updates:{rCP:'Sim'}});
+          }else{
+            steps.push({cycle,kind:'clinical',label:`Ciclo ${cycle} · pulso`,clinical:'Pulso central ausente.',question:'Qual deve ser a próxima ordem?',hint:'O ritmo não é chocável e não há pulso.',options:[option('Retomar RCP imediatamente',true,'Sem pulso: retome a RCP sem demora.'),option('Desfibrilar com 200 J',false,'AESP não recebe choque.',true),option('Iniciar cuidados pós-PCR',false,'Não houve RCE.')],updates:{rCP:'Sim'}});
+          }
+          steps.push({cycle,kind:'clinical',label:`Ciclo ${cycle} · qualidade da RCP`,clinical:'As compressões estão em andamento, mas o líder ainda precisa avaliar sua qualidade.',question:'Qual ordem é mais completa neste momento?',hint:'Pense em frequência, profundidade, retorno, ventilação, pausas e fadiga.',options:[option('Designar responsável pela qualidade: 100–120/min, 5–6 cm, retorno completo, evitar hiperventilação e preparar troca',true,'A ordem reúne os principais componentes da RCP de alta qualidade e mantém comunicação em alça fechada.'),option('Pedir apenas que o compressor acelere para mais de 120/min',false,'Frequências excessivas reduzem a qualidade das compressões.'),option('Interromper agora para trocar o compressor e revisar todas as funções',false,'A troca deve ocorrer com interrupção mínima, no momento da análise.'),option('Priorizar a intubação e suspender compressões durante o procedimento',false,'A via aérea não deve interromper compressões.',true),option('Checar pulso a cada minuto para avaliar resposta',false,'Checagens frequentes aumentam a fração sem compressões.')],updates:{coach:'Sim'}});
+          if(rhythm==='FV'||rhythm==='TVSP'){
+            if(index===0)steps.push({cycle,kind:'clinical',label:`Ciclo ${cycle} · tarefas paralelas`,clinical:'Primeiro ciclo de RCP após o choque; ainda não há acesso vascular.',question:'Qual conduta deve ser antecipada?',hint:'Neste ciclo, estabeleça a via para as medicações dos próximos ciclos.',options:[option('Obter acesso IV/IO e preparar epinefrina 1 mg',true,'Acesso e epinefrina são preparados sem interromper a RCP.'),option('Administrar epinefrina 1 mg imediatamente, mesmo sem acesso',false,'Primeiro obtenha acesso IV/IO; no ritmo chocável, a epinefrina entra após o segundo choque.'),option('Administrar amiodarona 300 mg',false,'A dose inicial de amiodarona é reservada para FV/TV sem pulso refratária após novos choques.'),option('Administrar amiodarona 150 mg',false,'150 mg é a segunda dose de amiodarona, não a primeira.'),option('Administrar bicarbonato de sódio rotineiramente',false,'Bicarbonato não é usado rotineiramente na PCR; depende de indicação específica.')],updates:{drugs:'Epi preparada'}});
+            else if(index===1){steps.push({cycle,kind:'clinical',label:`Ciclo ${cycle} · medicação`,clinical:'Segundo ciclo após choque; acesso IV/IO disponível e nenhuma epinefrina foi administrada.',question:'Qual é a melhor conduta medicamentosa agora?',hint:'Escolha o vasopressor e antecipe a medicação do próximo choque, se o ritmo persistir.',options:[option('Administrar epinefrina 1 mg e preparar amiodarona 300 mg',true,'Epinefrina é administrada e a primeira dose do antiarrítmico fica preparada.'),option('Administrar apenas amiodarona 300 mg',false,'Ainda é necessário administrar epinefrina neste ciclo.'),option('Administrar amiodarona 150 mg',false,'150 mg corresponde à segunda dose, após a dose inicial de 300 mg.'),option('Administrar bicarbonato de sódio',false,'Não há indicação específica para bicarbonato neste momento.'),option('Administrar atropina 1 mg',false,'Atropina não faz parte do algoritmo de PCR.',true)],updates:{drugs:'Epi + Amio prep.'}});lastEpinephrineIndex=index;}
+            else if(index===2)steps.push({cycle,kind:'clinical',label:`Ciclo ${cycle} · medicação`,clinical:'FV/TV sem pulso persiste após o terceiro choque; epinefrina já foi administrada.',question:'Qual antiarrítmico deve ser administrado?',hint:'É a primeira dose de amiodarona na FV/TV refratária.',options:[option('Amiodarona 300 mg IV/IO',true,'300 mg é a primeira dose de amiodarona para FV/TV sem pulso refratária.'),option('Epinefrina 1 mg imediatamente, independentemente do intervalo',false,'Epinefrina deve respeitar o intervalo de 3–5 minutos.'),option('Amiodarona 150 mg IV/IO',false,'150 mg é a segunda dose.'),option('Bicarbonato de sódio',false,'Bicarbonato depende de indicação específica, como hipercalemia ou intoxicação por bloqueador de canal de sódio.'),option('Atropina 1 mg IV/IO',false,'Atropina não é indicada na PCR.')],updates:{drugs:'Amio 300 mg'}});
+            else{steps.push({cycle,kind:'clinical',label:`Ciclo ${cycle} · medicação`,clinical:'FV/TV sem pulso continua refratária; amiodarona 300 mg já foi administrada e transcorreram cerca de 4 minutos desde a epinefrina.',question:'Qual opção medicamentosa é apropriada agora?',hint:'Considere a segunda dose do antiarrítmico e o intervalo de 3–5 minutos da epinefrina.',options:[option('Amiodarona 150 mg IV/IO e repetir epinefrina 1 mg',true,'A segunda dose de amiodarona é 150 mg e já se passaram cerca de 4 minutos desde a epinefrina.'),option('Administrar apenas amiodarona 150 mg IV/IO',false,'A dose do antiarrítmico está correta, mas a epinefrina também deve ser repetida porque já transcorreram 3–5 minutos.'),option('Repetir amiodarona 300 mg',false,'A segunda dose de amiodarona é de 150 mg.'),option('Bicarbonato de sódio rotineiramente',false,'Bicarbonato não é tratamento rotineiro da FV/TV refratária.'),option('Administrar apenas epinefrina 1 mg',false,'A epinefrina está no intervalo adequado, mas a segunda dose de amiodarona também é indicada.')],updates:{drugs:'Amio 150 + Epi'}});lastEpinephrineIndex=index;}
+          }else{
+            if(lastEpinephrineIndex===null||index-lastEpinephrineIndex>=2){steps.push({cycle,kind:'clinical',label:`Ciclo ${cycle} · medicação`,clinical:'RCP de alta qualidade em andamento em ritmo não chocável; acesso IV/IO disponível.',question:'Qual medicação deve ser administrada agora?',hint:'Considere a indicação da epinefrina e o intervalo de 3–5 minutos entre as doses.',options:[option('Epinefrina 1 mg IV/IO',true,'A epinefrina é indicada agora; a próxima dose só poderá ser repetida após 3–5 minutos.'),option('Amiodarona 300 mg IV/IO',false,'Amiodarona é reservada para FV/TV sem pulso refratária.'),option('Amiodarona 150 mg IV/IO',false,'A segunda dose de amiodarona também não é indicada em AESP.'),option('Bicarbonato de sódio para toda AESP',false,'Bicarbonato só deve ser usado quando houver indicação específica.'),option('Atropina 1 mg IV/IO',false,'Atropina não é indicada no algoritmo de PCR.',true)],updates:{drugs:'Epi 1 mg'}});lastEpinephrineIndex=index;}
+            else steps.push({cycle,kind:'clinical',label:`Ciclo ${cycle} · intervalo da epinefrina`,clinical:'A última dose de epinefrina foi administrada no ciclo anterior, há cerca de 2 minutos.',question:'Qual é a conduta medicamentosa neste ciclo?',hint:'A epinefrina é repetida a cada 3–5 minutos, não em todos os ciclos.',options:[option('Não repetir epinefrina agora; manter RCP e controlar o intervalo para a próxima dose',true,'Correto: ainda não transcorreram 3 minutos desde a última epinefrina.'),option('Repetir epinefrina 1 mg imediatamente',false,'Dois minutos é um intervalo menor que o recomendado de 3–5 minutos.'),option('Administrar amiodarona 300 mg IV/IO',false,'Amiodarona não é indicada para AESP.'),option('Administrar amiodarona 150 mg IV/IO',false,'Amiodarona não é indicada para AESP.'),option('Administrar bicarbonato de sódio rotineiramente',false,'Bicarbonato depende de uma indicação específica.')],updates:{drugs:'Aguardar 3–5 min'}});
+            steps.push({cycle,kind:'clinical',label:`Ciclo ${cycle} · causa reversível`,clinical:`O contexto clínico sugere ${scenario.cause}.`,question:'O que ainda precisa ser feito durante este ciclo?',hint:'AESP exige busca e tratamento dirigido de Hs e Ts.',options:[option(`Investigar Hs e Ts e tratar ${scenario.cause}`,true,'A causa reversível foi reconhecida e tratada durante a RCP.'),option('Apenas aguardar a próxima análise de ritmo',false,'A causa reversível deve ser investigada e tratada durante as compressões.'),option('Administrar novo choque empírico',false,'Não se desfibrila AESP.',true)],updates:{other:'Hs/Ts tratados'}});
+          }
+        });return steps;
+      }
+
+      function initGrid(){let h='';for(let x=0;x<=800;x+=10)h+=`<line class="${x%50===0?'ms-grid-major':'ms-grid-minor'}" x1="${x}" y1="0" x2="${x}" y2="170"></line>`;for(let y=0;y<=170;y+=10)h+=`<line class="${y%50===0?'ms-grid-major':'ms-grid-minor'}" x1="0" y1="${y}" x2="800" y2="${y}"></line>`;els.grid.innerHTML=h;}
+      function wave(type){
+        if(type==='FV')return{d:ecgPaths.FV,transform:'translate(0 -65) scale(9.98 11)'};
+        if(type==='TVSP'||type==='ASSISTOLIA')return{d:ecgPaths[type],transform:'translate(0 1) scale(9.98 6.05)'};
+        if(type==='AESP'||type==='ORGANIZADO'){let p='M0,86';const period=type==='AESP'?146:116;for(let s=-18;s<820;s+=period)p+=` L${s+18},86 C${s+22},86 ${s+25},82 ${s+29},80 C${s+33},79 ${s+37},84 ${s+41},86 L${s+54},86 L${s+58},91 L${s+61},50 L${s+64},116 L${s+69},78 L${s+73},86 L${s+91},86 C${s+99},85 ${s+103},72 ${s+112},72 C${s+122},72 ${s+127},85 ${s+136},86 L${s+period},86`;return{d:p,transform:''};}
+        return{d:'M0,85 C95,84 150,86 224,85 C315,84 400,86 492,85 C590,84 690,86 800,85',transform:''};
+      }
+      function newState(){const scenario=cases[Math.floor(Math.random()*cases.length)];state={scenario,steps:makeSteps(scenario),index:0,started:false,answered:false,errors:0,critical:0,hints:0,wrong:new Set(),rows:[],competencies:new Set()};root.dataset.screen='case';els.debrief.hidden=true;els.stage.hidden=true;els.board.hidden=true;els.startWrap.hidden=false;els.caseLabel.textContent='CASO CLÍNICO';els.caseTitle.textContent=scenario.title;els.caseDetail.textContent=scenario.detail;render();}
+      function start(){state.started=true;els.startWrap.hidden=true;els.stage.hidden=false;els.board.hidden=false;ensureRow();render();}
+      function ensureRow(){const step=state.steps[state.index];if(step.cycle>0&&!state.rows.some(r=>r.cycle===step.cycle))state.rows.push({cycle:step.cycle,rhythm:'—',shock:'—',rCP:'—',coach:'—',drugs:'—',other:'—'});}
+      function applyUpdates(step){if(step.cycle===0)return;const row=state.rows.find(r=>r.cycle===step.cycle);if(row)Object.assign(row,step.updates||{});}
+      function answer(index){if(state.answered)return;const step=state.steps[state.index],choice=step.options[index];if(choice.correct){state.answered=true;applyUpdates(step);state.competencies.add(step.label);els.feedback.hidden=false;els.feedback.dataset.tone='good';els.feedback.innerHTML=`<strong>Conduta adequada</strong>${choice.reason}`;els.next.hidden=false;}else{state.errors++;if(choice.critical)state.critical++;state.wrong.add(index);els.feedback.hidden=false;els.feedback.dataset.tone='bad';els.feedback.innerHTML=`<strong>Conduta inadequada</strong>${choice.reason} Escolha outra opção.`;}render();}
+      function next(){if(!state.answered)return;state.index++;state.answered=false;state.wrong=new Set();els.feedback.hidden=true;els.next.hidden=true;els.hintBox.open=false;if(state.index>=state.steps.length){finish();return;}ensureRow();render();}
+      function finish(){root.dataset.screen='debrief';els.stage.hidden=true;els.board.hidden=false;els.debrief.hidden=false;const total=state.steps.length,score=Math.max(0,Math.round((total-state.errors)/total*100));els.finalFeedback.dataset.tone=state.errors===0?'good':state.critical===0?'good':'bad';els.finalFeedback.innerHTML=state.errors===0?'<strong>Parabéns!</strong>Você concluiu o caso sem nenhum erro e conduziu corretamente toda a PCR.':state.critical===0?'<strong>Bom trabalho!</strong>Você concluiu o atendimento sem erros críticos.':'<strong>Caso concluído</strong>Revise os pontos abaixo antes de tentar novamente.';els.outcome.textContent=`RCE obtido após ${state.scenario.sequence.length-1} ciclos de PCR. Evolução: ${state.scenario.sequence.map(r=>rhythmNames[r]).join(' → ')}. Causa programada: ${state.scenario.cause}.`;els.stats.innerHTML=`<div class="viz-stat card"><span>Aproveitamento</span><strong class="viz-stat-value">${score}%</strong></div><div class="viz-stat card"><span>Erros</span><strong class="viz-stat-value">${state.errors}</strong></div><div class="viz-stat card"><span>Erros críticos</span><strong class="viz-stat-value">${state.critical}</strong></div>`;const good=[],bad=[];if(state.critical===0)good.push('Evitou choques e pausas incompatíveis');else bad.push('Rever indicação e segurança da desfibrilação');if(state.errors<=2)good.push('Manteve a sequência do algoritmo');else bad.push('Repetir a ordem das ações dentro de cada ciclo');if(state.scenario.sequence.includes('AESP'))good.push('Completou a transição para o ritmo não chocável');if(state.hints===0)good.push('Conduziu sem pistas');else bad.push('Refazer o caso tentando reduzir o uso de pistas');good.push('Reconheceu RCE e iniciou cuidados pós-PCR');els.good.innerHTML=good.map(x=>`<li>${x}</li>`).join('');els.improve.innerHTML=(bad.length?bad:['Repetir com outro caso para consolidar']).map(x=>`<li>${x}</li>`).join('');renderTable();}
+      function renderTable(){if(!state.rows.length){els.tbody.innerHTML='<tr><td class="ms-empty" colspan="7">O atendimento ainda não começou.</td></tr>';return;}const current=state.steps[state.index];els.tbody.innerHTML=state.rows.map(row=>`<tr data-current="${current&&row.cycle===current.cycle}"><td>${row.cycle}</td><td>${row.rhythm}</td><td>${row.shock}</td><td>${row.rCP}</td><td>${row.coach}</td><td>${row.drugs}</td><td>${row.other}</td></tr>`).join('');}
+      function render(){if(!state.started)return;const step=state.steps[state.index];els.stageLabel.textContent=step.label;els.progress.textContent=`Decisão ${state.index+1} de ${state.steps.length}`;els.monitor.hidden=step.kind!=='rhythm';els.clinical.hidden=step.kind!=='clinical';if(step.kind==='rhythm'){const trace=wave(step.rhythm);els.wave.setAttribute('d',trace.d);els.wave.setAttribute('transform',trace.transform);}else els.clinical.textContent=step.clinical;els.question.textContent=step.question;els.hint.textContent=step.hint;els.options.innerHTML=step.options.map((o,i)=>`<button class="btn ms-option" type="button" data-answer="${i}" data-wrong="${state.wrong.has(i)}" data-correct="${state.answered&&o.correct}" ${state.answered||state.wrong.has(i)?'disabled':''}>${o.text}</button>`).join('');renderTable();}
+      root.addEventListener('click',event=>{const button=event.target.closest('[data-answer]');if(button)answer(Number(button.dataset.answer));});els.hintBox.addEventListener('toggle',()=>{if(els.hintBox.open)state.hints++;});els.start.addEventListener('click',start);els.next.addEventListener('click',next);els.newCase.addEventListener('click',newState);initGrid();newState();
+    })();
+  </script>
+</div>
+
+</body>
+</html>
