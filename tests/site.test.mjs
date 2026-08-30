@@ -19,8 +19,11 @@ test("build contém os arquivos essenciais", () => {
   }
 });
 
-test("SPA fallback está configurado", () => {
-  assert.match(readFileSync("dist/_redirects", "utf8"), /\/\* \/index\.html 200/);
+test("SPA fallback nativo não é bloqueado nem cria loop de redirecionamento", () => {
+  assert.equal(existsSync("dist/404.html"), false);
+  assert.ok(existsSync("dist/index.html"));
+  const rules = readFileSync("dist/_redirects", "utf8").split("\n").filter(line => line.trim() && !line.trim().startsWith("#"));
+  assert.equal(rules.length, 0);
 });
 
 test("simulador de RCP preserva o Megacode e o feedback final", () => {

@@ -43,3 +43,4 @@
 - Frames dos novos módulos têm altura estável e rolagem própria: isso evita crescimento recursivo causado pelo uso original de `100vh`. O frame RCP mantém o comportamento anterior.
 - `tests/imports.test.mjs` fixa hashes dos arquivos originais e do núcleo extraído para detectar alterações acidentais, além de verificar métricas, curvas e assets.
 - Projetos originais não modificados. Nenhuma aula, credencial, banco, login ou API de IA foi incorporada.
+- Validação na Cloudflare: removida a regra curinga de rewrite ignorada pelo serviço por risco de loop. Usado o fallback SPA nativo, preservando prioridade dos HTMLs e assets dos simuladores. Nenhuma lógica clínica alterada.

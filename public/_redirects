@@ -1,1 +1,3 @@
-/* /index.html 200
+# Cloudflare Pages supplies SPA fallback automatically when no root 404.html
+# exists. Do not add /* /index.html 200: it loops after HTML normalization.
+# Static simulator HTML/assets are resolved before the built-in SPA fallback.

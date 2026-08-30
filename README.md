@@ -60,7 +60,7 @@ O projeto já está conectado ao repositório `VHSL-L/simuladores-prof-victor`; 
    - Node.js: `22`
 5. Publique o projeto.
 
-O arquivo `public/_redirects` é copiado para `dist/_redirects` e garante que o acesso direto às rotas da aplicação funcione no Cloudflare Pages.
+O acesso direto às rotas usa o [fallback SPA nativo do Cloudflare Pages](https://developers.cloudflare.com/pages/configuration/serving-pages/#single-page-application-spa-rendering): não inclua um `404.html` na raiz. O arquivo `public/_redirects` documenta essa escolha, sem a regra curinga que causava aviso de loop. Os HTMLs e assets de cada simulador têm prioridade sobre o fallback.
 
 ## Rotas
 
