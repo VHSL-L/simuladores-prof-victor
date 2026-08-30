@@ -5,8 +5,8 @@ Plataforma web estática para reunir simuladores clínicos voltados ao ensino, t
 ## Primeira versão
 
 - RCP: disponível e importado como cópia isolada do simulador original.
-- Ventilação Mecânica: rota preparada, módulo pendente de importação.
-- Choque: rota preparada, módulo pendente de importação.
+- Ventilação Mecânica: VentilaLab original, três casos e treino livre em VCV/PCV, sem as aulas.
+- Choque: Sala de Choque original, cinco casos com decisões e desfechos.
 
 ## Tecnologia
 
@@ -44,9 +44,11 @@ Os arquivos finais são gravados em `dist/`.
 npm test
 ```
 
-O teste executa o build e confere a presença das rotas, do simulador importado e dos arquivos necessários para o Cloudflare Pages.
+O teste executa o build, verifica preservação do código clínico, regras de epinefrina, métricas/curvas VCV e PCV e assets da Cloudflare Pages. Com a prévia local ativa, execute também `node tests/routes-smoke.mjs`. A página `/tests/mobile-preview.html` existe apenas no desenvolvimento para inspeção em frames de 390 × 844; não é publicada.
 
 ## Publicação no Cloudflare Pages
+
+O projeto já está conectado ao repositório `VHSL-L/simuladores-prof-victor`; pushes em `main` acionam a publicação em https://simuladores-prof-victor.pages.dev. Para configurar outra instalação:
 
 1. Envie este diretório para um repositório no GitHub.
 2. No Cloudflare, acesse **Workers & Pages → Create → Pages → Connect to Git**.
@@ -76,6 +78,8 @@ O arquivo `public/_redirects` é copiado para `dist/_redirects` e garante que o 
 4. Registre a rota em `src/App.tsx`.
 5. Atualize o card na página inicial somente depois de validar o módulo.
 6. Preserve o original e registre qualquer adaptação técnica no README do módulo.
+
+Os módulos React usam entradas HTML próprias, registradas em `vite.config.ts`, para manter CSS e estados isolados. Consulte [MIGRATION.md](MIGRATION.md) para fontes, diferenças técnicas e dependências. A única requisição externa de apresentação é Google Fonts no módulo Choque; toda a lógica dos três simuladores roda localmente.
 
 ## Conteúdo clínico
 

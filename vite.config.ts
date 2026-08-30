@@ -6,5 +6,12 @@ export default defineConfig({
   build: {
     outDir: "dist",
     sourcemap: true,
+    rolldownOptions: {
+      input: {
+        platform: "index.html",
+        choque: "simulators/choque/index.html",
+        ventilacao: "simulators/ventilacao-mecanica/index.html",
+      },
+    },
   },
 });

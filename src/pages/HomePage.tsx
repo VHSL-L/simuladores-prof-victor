@@ -39,11 +39,15 @@ export function HomePage() {
           <SimulatorCard
             index="01"
             title="Ventilação Mecânica"
+            href="/ventilacao-mecanica"
+            available
             description="Treinamento de raciocínio e tomada de decisão em ventilação mecânica."
           />
           <SimulatorCard
             index="02"
             title="Choque"
+            href="/choque"
+            available
             description="Avaliação e tomada de decisão no atendimento ao paciente em choque."
           />
           <SimulatorCard

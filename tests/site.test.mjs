@@ -8,6 +8,9 @@ const requiredFiles = [
   "dist/_headers",
   "dist/favicon.svg",
   "dist/simulators/rcp/index.html",
+  "dist/simulators/choque/index.html",
+  "dist/simulators/ventilacao-mecanica/index.html",
+  "dist/simulators/ventilacao-mecanica/fonts/geist-mono-latin.woff2",
 ];
 
 test("build contém os arquivos essenciais", () => {

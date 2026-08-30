@@ -6,6 +6,8 @@ const paths = [
   "/rcp",
   "/sobre",
   "/simulators/rcp/index.html",
+  "/simulators/choque/index.html",
+  "/simulators/ventilacao-mecanica/index.html",
 ];
 
 const results = [];

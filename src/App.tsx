@@ -1,5 +1,5 @@
 import { SiteLayout } from "./components/SiteLayout";
-import { ComingSoonPage } from "./pages/ComingSoonPage";
+import { ClinicalSimulatorPage } from "./pages/ClinicalSimulatorPage";
 import { HomePage } from "./pages/HomePage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { RcpPage } from "./pages/RcpPage";
@@ -21,7 +21,9 @@ export default function App() {
       break;
     case "/ventilacao-mecanica":
       page = (
-        <ComingSoonPage
+        <ClinicalSimulatorPage
+          slug="ventilacao-mecanica"
+          frameTitle="VentilaLab — Simulador do Prof. Victor"
           title="Ventilação Mecânica"
           description="Treinamento de raciocínio e tomada de decisão em ventilação mecânica."
         />
@@ -29,7 +31,9 @@ export default function App() {
       break;
     case "/choque":
       page = (
-        <ComingSoonPage
+        <ClinicalSimulatorPage
+          slug="choque"
+          frameTitle="Sala de Choque do Prof. Victor"
           title="Choque"
           description="Avaliação e tomada de decisão no atendimento ao paciente em choque."
         />

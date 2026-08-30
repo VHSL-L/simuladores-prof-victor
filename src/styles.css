@@ -518,6 +518,13 @@ p {
   background: #fff;
 }
 
+.simulator-links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
 .simulator-frame {
   width: 100%;
   min-height: 720px;

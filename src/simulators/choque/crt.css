@@ -1,0 +1,29 @@
+/* Capillary refill replaces the abstract perfusion percentage. */
+.physiology-panel>div:first-child,
+.physiology-panel>.meter:nth-child(2),
+.perfusion-focus { display:none; }
+
+.crt-monitor { padding:14px 17px 12px;background:#fff;border-top:5px solid var(--red);color:var(--ink); }
+.crt-monitor.mid { border-top-color:var(--amber); }
+.crt-monitor.good { border-top-color:var(--green); }
+.crt-heading { display:flex;align-items:end;justify-content:space-between;gap:18px; }
+.crt-heading>div>span { display:block;color:#73878f;font-size:8px;letter-spacing:.14em;font-weight:800;margin-bottom:4px; }
+.crt-heading>div>b { display:block;color:var(--red);font-size:12px; }
+.crt-monitor.mid .crt-heading>div>b { color:var(--amber); }
+.crt-monitor.good .crt-heading>div>b { color:var(--green); }
+.crt-heading>strong { color:var(--red);font:600 31px/1 "IBM Plex Mono"; }
+.crt-monitor.mid .crt-heading>strong { color:var(--amber); }
+.crt-monitor.good .crt-heading>strong { color:var(--green); }
+.crt-heading>strong small { font-size:11px; }
+.crt-track { height:10px;border-radius:5px;background:#e3eaec;margin:11px 0 6px;overflow:hidden; }
+.crt-track i { display:block;height:100%;background:var(--red);transition:width .45s ease; }
+.crt-monitor.mid .crt-track i { background:var(--amber); }
+.crt-monitor.good .crt-track i { background:var(--green); }
+.crt-scale { display:grid;grid-template-columns:repeat(4,1fr);color:#87979e;font:500 8px "IBM Plex Mono"; }
+.crt-scale span:nth-child(2),.crt-scale span:nth-child(3) { text-align:center; }
+.crt-scale span:last-child { text-align:right; }
+
+@media (max-width:520px) {
+  .crt-heading>div>b { font-size:10px; }
+  .crt-heading>strong { font-size:27px; }
+}
