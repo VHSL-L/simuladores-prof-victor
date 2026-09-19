@@ -20,8 +20,23 @@ export function AboutPage() {
             <h2>Autor</h2>
             <p><strong>Prof. Victor Hugo Sant&apos;Ana</strong></p>
             <p>
-              Este espaço poderá receber futuramente foto, currículo, formação,
-              links profissionais e publicações.
+              Médico formado pela Pontifícia Universidade Católica do Paraná
+              (PUCPR), intensivista pela Associação de Medicina Intensiva Brasileira
+              (AMIB), com MBA em Gestão em Saúde pela Fundação Getulio Vargas (FGV)
+              e pós-graduação em Inteligência Artificial e Data Science em Saúde.
+              Atua como médico intensivista, gestor de fluxos hospitalares e
+              professor de Medicina.
+            </p>
+            <p>
+              Sua trajetória reúne assistência ao paciente crítico, gestão
+              hospitalar, ensino e tecnologia. Os simuladores deste projeto
+              aproximam essas áreas por meio de ferramentas interativas voltadas
+              ao aprendizado e ao desenvolvimento do raciocínio clínico.
+            </p>
+            <p>
+              <a className="text-link" href="https://www.linkedin.com/in/vh-santana" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+              {" · "}
+              <a className="text-link" href="https://www.instagram.com/victorhugosantana/" target="_blank" rel="noopener noreferrer">Instagram</a>
             </p>
           </section>
           <section>
