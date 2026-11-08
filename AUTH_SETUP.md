@@ -12,7 +12,8 @@ A versão em `feature/unc-email-access` usa Google Identity Services, Cloudflare
 - Google Auth Platform confirmado como **Em produção**, somente identificação básica, sem escopos de Gmail/Drive.
 - D1 separado `simuladores-auth-preview` criado, ID `7e3b1dcf-0dff-4e5f-8fdf-2027d47f032f`, com as duas migrações. `AUTH_DB` e `GOOGLE_CLIENT_ID` salvos no ambiente Preview; `Fail closed` conferido.
 - Primeiro build da branch publicado com sucesso na Cloudflare. Alias: `https://feature-unc-email-access.simuladores-prof-victor.pages.dev`. Nova publicação aplica as configurações de preview.
-- Pendente: teste institucional real, proteção das versões antigas e publicação do site em produção.
+- Teste institucional real confirmado pelo titular: entrou com conta de aluno, abriu um simulador e saiu normalmente. As rotas públicas e a proteção dos links diretos dos três módulos também foram verificadas na prévia hospedada.
+- Versão validada pronta para promoção a `main`; proteção dos deployments antigos será conferida na ativação.
 
 ## Fluxo e limites
 
@@ -22,7 +23,7 @@ A versão em `feature/unc-email-access` usa Google Identity Services, Cloudflare
 4. O desafio é consumido atomicamente, impedindo replay, e é criada uma sessão de até 7 dias. A identidade é vinculada ao `sub` estável; não se vinculam contas diferentes somente porque possuem o mesmo e-mail.
 5. O cookie `__Host-simuladores_session` é Secure, HttpOnly, SameSite=Lax, com caminho `/`. O banco guarda só o hash do token aleatório. Sair revoga a sessão; novo login no mesmo navegador revoga a sessão anterior. Contas bloqueadas perdem acesso imediatamente.
 
-O domínio Workspace real deve ser confirmado com uma conta de aluno. Se a UNC usar um domínio primário diferente de `aluno.unc.br`, investigar a organização antes de alterar a regra; nunca aceitar qualquer `hd` nem validar apenas texto informado pelo navegador.
+O fluxo com a regra atual de domínio Workspace foi validado pelo titular usando uma conta de aluno. Se a UNC usar um domínio primário diferente de `aluno.unc.br`, investigar a organização antes de alterar a regra; nunca aceitar qualquer `hd` nem validar apenas texto informado pelo navegador.
 
 As APIs de login exigem POST JSON e Origin exata, limitam o corpo a 8 KiB e aplicam até 300 solicitações por rede a cada 10 minutos. O identificador da rede é um hash que muda diariamente; não é anonimização irreversível. Esse limite considera turmas compartilhando uma rede. Não armazenamos o token Google, foto ou conteúdo da conta.
 
