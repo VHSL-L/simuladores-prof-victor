@@ -1,53 +1,58 @@
-# Acesso institucional UNC — ativação
+# Acesso institucional UNC pelo Google
 
-Implementação preparada em `feature/unc-email-access`. Não publicar na produção antes de configurar e testar o envio real: esta versão protege os simuladores por padrão, mesmo se faltarem credenciais.
+A versão em `feature/unc-email-access` usa Google Identity Services, Cloudflare Pages e D1. Não precisa comprar domínio nem contratar envio de e-mail. Publicar somente depois de configurar a identidade Google, as migrações e testar uma conta institucional real em preview. A proteção permanece fechada se a configuração estiver incompleta.
 
-## Estado externo verificado em 08/11/2026
+## Estado verificado em 08/11/2026
 
-- Banco de produção `simuladores-auth` criado no plano gratuito da conta Cloudflare existente. ID: `245dc00a-18a1-4ee1-8409-5e336944140c`.
-- As quatro tabelas (`users`, `login_codes`, `sessions`, `auth_limits`) e os índices da migração foram criados; a listagem das quatro tabelas foi conferida no console.
-- Vínculo de produção `AUTH_DB` salvo no projeto `simuladores-prof-victor`; passa a valer na próxima publicação.
-- Configuração de produção alterada de `Fail open` para `Fail closed` e confirmada no painel.
-- Nenhuma versão nova publicada; não foram criados segredos ou enviados e-mails reais.
-- Pendente: domínio/remetente, conta e chave do serviço de envio, `AUTH_SECRET`, banco separado e configurações de preview, proteção dos deployments antigos e teste completo de entrega antes de publicar.
-- `simuladoresdovictor.com` foi cotado no painel por US$ 11,17/ano, renovação indicada no mesmo valor, antes de impostos. Não comprado. O checkout tem renovação automática marcada por padrão e não tem dados de titular cadastrados; aguardar escolha do usuário.
+- Produção ainda é a versão anterior, com a biografia. Esta implementação não foi publicada.
+- D1 de produção `simuladores-auth`, ID `245dc00a-18a1-4ee1-8409-5e336944140c`, com as migrações `0001_auth.sql` e `0002_google.sql` aplicadas; tabela de desafios e índices Google conferidos no console.
+- Vínculo de produção `AUTH_DB` salvo no Pages e configuração de falhas `Fail closed` confirmada. Valem na próxima publicação.
+- Projeto Google `simuladores-prof-victor` e cliente Web criados; nome público “Simuladores do Prof. Victor” e contato de suporte autorizado pelo titular. Nenhum plano pago ou compra de domínio contratado.
+- `GOOGLE_CLIENT_ID` salvo em produção como texto público. Identificador: `46205128024-qcm69oadhdfpfus07mjbu3s3mr19asbs.apps.googleusercontent.com`. O segredo do cliente não é usado nem armazenado pela aplicação.
+- Pendente: concluir status de publicação Google, ambiente de preview separado, teste institucional real e publicação do site.
 
-## Arquitetura
+## Fluxo e limites
 
-- Cloudflare Pages advanced mode: `dist/_worker.js` intercepta **todas** as requisições. `dist/_routes.json` não tem exclusões.
-- D1 armazena contas, hashes de sessão, desafios de código e limites temporários.
-- Resend envia códigos de 6 dígitos por um remetente de domínio verificado. O domínio do remetente NÃO precisa ser UNC; o domínio de destino é exatamente `aluno.unc.br`.
-- Somente `/`, `/sobre`, `/entrar`, `/privacidade` e os assets da plataforma enumerados no build são públicos. Arquivos de simulação não entram na lista pública. Source maps não são publicados.
-- Código: 10 minutos, uso único, 5 tentativas por emissão. Reenvio: 60 segundos, até 5 solicitações por endereço/hora. Verificação: até 15 tentativas por endereço/hora. Limite adicional de 300 requisições/10 minutos por rede e 500 envios/hora no total. Ajustar esses limites e as cotas do provedor antes de uma turma grande usar simultaneamente. Os limites por janela são fixos, não deslizantes.
-- Sessão: cookie `__Host-simuladores_session`, Secure, HttpOnly, SameSite=Lax, até 7 dias. Token opaco aleatório armazenado somente como SHA-256. Logout revoga no servidor. Conta bloqueada perde acesso imediatamente.
-- Login UNC não depende de tarifa por assento, mas hospedagem, banco e envio têm cotas/possíveis cobranças próprias.
-- `users.access_kind` reserva a categoria `paid`; ela ainda NÃO autoriza acesso. Assinaturas exigirão uma tabela de direitos e webhooks verificados do provedor de pagamento. Nenhum pagamento ou lista de espera é implementado agora.
-- O histórico atual registra apenas criação da conta e último login; não registra desempenho clínico.
+1. A tela carrega o botão oficial do Google. A aplicação só usa identificação básica, sem autorização para Gmail, Drive ou contatos.
+2. O Worker emite um desafio aleatório, vinculado ao navegador por cookie Secure/HttpOnly e armazenado como SHA-256 no D1. Validade: 10 minutos.
+3. O Google devolve uma credencial assinada. O servidor usa `jose` para conferir assinatura RS256 com as chaves públicas do Google, emissor, destinatário, expiração, idade, identificador `sub` e nonce. Também exige e-mail verificado, domínio do e-mail exatamente `aluno.unc.br` e domínio Workspace `hd` exatamente `aluno.unc.br`. A dica `hd` do botão não substitui essa conferência no servidor.
+4. O desafio é consumido atomicamente, impedindo replay, e é criada uma sessão de até 7 dias. A identidade é vinculada ao `sub` estável; não se vinculam contas diferentes somente porque possuem o mesmo e-mail.
+5. O cookie `__Host-simuladores_session` é Secure, HttpOnly, SameSite=Lax, com caminho `/`. O banco guarda só o hash do token aleatório. Sair revoga a sessão; novo login no mesmo navegador revoga a sessão anterior. Contas bloqueadas perdem acesso imediatamente.
 
-## Configuração externa necessária
+O domínio Workspace real deve ser confirmado com uma conta de aluno. Se a UNC usar um domínio primário diferente de `aluno.unc.br`, investigar a organização antes de alterar a regra; nunca aceitar qualquer `hd` nem validar apenas texto informado pelo navegador.
 
-1. Escolher um domínio próprio e um remetente (ex.: `acesso@auth.DOMINIO`). Não registrar compras nem usar o domínio UNC sem autorização do responsável.
-2. Verificar o domínio no Resend por DNS. Desativar rastreamento de abertura/cliques nos códigos. Confirmar que o plano suporta o volume da turma; os limites do código não substituem as cotas do provedor.
-3. Criar banco D1 exclusivo, aplicar `migrations/0001_auth.sql` e vinculá-lo no Pages com o nome `AUTH_DB`. Usar banco separado para preview.
-4. Configurar no Pages (não em Vite, arquivos públicos ou Git):
-   - `AUTH_SECRET`: segredo aleatório com pelo menos 32 caracteres, como Secret.
-   - `RESEND_API_KEY`: chave restrita ao envio pelo domínio escolhido, como Secret.
-   - `AUTH_EMAIL_FROM`: remetente verificado (texto).
-5. Recompilar com `npm run build`. A etapa `scripts/build-worker.mjs` é obrigatória. A configuração do projeto existente já usa este comando.
-6. Validar em preview: receber um código real em um e-mail UNC autorizado pelo titular, entrar, abrir cada módulo e link direto, sair e tentar reabrir o link direto. Confirmar também a rota de erro de domínio externo. Nenhum bypass/test code está no Worker de produção.
-7. Só então publicar em `main`. Manter bloqueada a alternativa de falha aberta de Pages Functions (fail closed) para que esgotamento da cota não libere arquivos.
-8. Proteger previews antigos e a URL de produção anterior usando as opções de acesso da Cloudflare. Versões antigas continuam contendo os simuladores públicos; a nova proteção não reescreve deployments históricos ou cópias já baixadas.
+As APIs de login exigem POST JSON e Origin exata, limitam o corpo a 8 KiB e aplicam até 300 solicitações por rede a cada 10 minutos. O identificador da rede é um hash que muda diariamente; não é anonimização irreversível. Esse limite considera turmas compartilhando uma rede. Não armazenamos o token Google, foto ou conteúdo da conta.
+
+## Proteção dos simuladores
+
+- `dist/_worker.js` intercepta todas as requisições; `dist/_routes.json` não possui exclusões.
+- Públicos: `/`, `/sobre`, `/entrar`, `/privacidade`, favicon e dependências enumeradas da interface principal. Todos os outros arquivos, incluindo HTML/JS dos simuladores, exigem sessão.
+- Sem source maps publicados. Respostas são `private, no-store`.
+- Manter Pages Functions em `Fail closed` evita servir arquivos privados se a cota esgotar.
+- Configurar restrição dos previews antigos antes de anunciar proteção completa. Deployments históricos e cópias já baixadas não são reescritos pelo novo Worker.
+
+## Configuração externa
+
+1. No Google Auth Platform, criar cliente **Aplicativo da Web** no projeto do site, apenas para identificação Google. Origens JavaScript: produção `https://simuladores-prof-victor.pages.dev`, preview `https://feature-unc-email-access.simuladores-prof-victor.pages.dev` e, para validação local, `http://localhost` e `http://localhost:4173`. Não são necessários URIs de redirecionamento nem uso do segredo do cliente no fluxo GIS por callback.
+2. Nome de consentimento consistente com o site, contato de suporte autorizado e privacidade em `/privacidade`. Publicar o aplicativo para o público externo no Google antes da liberação geral; a restrição UNC continua no servidor. Não pedir permissões sensíveis. Não contratar teste de faturamento para esse fluxo.
+3. Aplicar `0001_auth.sql` e depois `0002_google.sql` uma única vez no D1 apropriado. Na produção existente, aplicar apenas `0002`, após verificar o esquema. A segunda migração preserva a tabela antiga `login_codes`, sem nenhum endpoint ativo de OTP.
+4. Vincular o D1 como `AUTH_DB` e definir `GOOGLE_CLIENT_ID` como texto no Pages. É um identificador público; não é senha. Criar banco separado para preview. Não são necessários `AUTH_SECRET`, `RESEND_API_KEY` ou `AUTH_EMAIL_FROM`.
+5. Compilar com `npm run build` ou `pnpm run build`. A etapa final empacota `jose` e o Worker com Vite e injeta a lista pública de assets. Nunca publicar apenas o build da interface.
+6. Em preview HTTPS, testar a entrada real com conta `@aluno.unc.br`, cada simulador, links diretos e saída; verificar bloqueio de conta pessoal. Nenhum usuário ou token de teste deve ser criado no banco de produção.
+7. Publicar em `main` somente após validação. Manter a origem de preview controlada; novas origens exigem cadastro no Google. Configurações Google podem demorar a propagar.
 
 ## Desenvolvimento e verificação
 
-`npm test` compila e executa testes de autenticação sobre SQLite real (Node 22.13+ com `node:sqlite`) e os testes clínicos existentes. O provedor de e-mail é interceptado exclusivamente no teste; nenhuma mensagem real é enviada.
+Requer Node 22.13+ (testes usam `node:sqlite`). `npm test` compila e executa testes clínicos e de acesso. Os testes usam SQLite real e credenciais assinadas por uma chave efêmera exclusiva do processo de teste. A resposta de chaves públicas é interceptada apenas no teste; o Worker publicado usa exclusivamente as chaves do Google.
 
-`npm run dev`/`npm run preview` servem somente a interface: NÃO simulam a barreira de autenticação. Para validar o Worker use `wrangler pages dev dist --d1 AUTH_DB=<banco-local>` após aplicar a migração local e configurar os segredos em `.dev.vars` (ignorado pelo Git). Preferir o preview hospedado para validar cookies Secure e entrega real de e-mail.
+`npm run dev` e `npm run preview` servem só a interface, sem controle de acesso. Para executar o Worker, usar `wrangler pages dev dist` com D1 local migrado, `GOOGLE_CLIENT_ID` em `.dev.vars` ignorado pelo Git e porta 4173 cadastrada no Google. Login completo deve ser validado também em HTTPS.
 
-## Administração
+## Administração e evolução
 
-Não há painel administrativo nesta etapa. No D1, bloquear uma conta por `users.status='blocked'` revoga o acesso em todas as sessões. Para excluir uma conta, remover seus códigos e a linha de usuário; sessões são removidas por cascata. Não expor o D1 ao navegador.
+Não há painel administrativo nesta etapa. Bloqueio em `users.status='blocked'` revoga acesso imediatamente. Exclusão de usuário remove sessões por cascata. Desafios, sessões e limites expirados são limpos durante requisições de páginas (aproximadamente 1/256); sem tráfego aguardam manutenção, mas já não autorizam acesso. Em escala maior, adicionar limpeza agendada.
 
-Os registros temporários expirados são limpos de forma probabilística nas requisições de páginas (aproximadamente 1/256). Sem tráfego, a limpeza aguarda a próxima manutenção; os registros expirados já não autorizam acesso. Em implantação maior, adicionar uma tarefa agendada de limpeza.
+A categoria `paid` está reservada, mas não autoriza acesso. Monetização exigirá direitos de acesso, pagamentos e webhooks verificados, sem confiar em campos enviados pelo navegador. Nenhuma assinatura ou cobrança foi implementada. O histórico atual registra criação e último login, sem respostas ou desempenho clínico.
 
-Referências: https://developers.cloudflare.com/pages/functions/advanced-mode/ ; https://developers.cloudflare.com/pages/functions/bindings/ ; https://resend.com/docs/dashboard/domains/introduction
+Google Identity Services não exige serviço de envio de e-mail. Cloudflare Pages/Workers e D1 possuem cotas próprias; acompanhar consumo antes de aumentar turmas. A gratuidade inicial não é promessa de capacidade ilimitada.
+
+Referências: https://developers.google.com/identity/gsi/web/guides/verify-google-id-token ; https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid ; https://developers.cloudflare.com/pages/functions/advanced-mode/

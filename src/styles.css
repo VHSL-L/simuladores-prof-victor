@@ -104,6 +104,8 @@ p { line-height: 1.7; }
 .login-card-heading h2 { font-size: 1.25rem; margin: 0; }
 .login-card-heading > span { color: var(--muted); font: .75rem ui-monospace, SFMono-Regular, Consolas, monospace; }
 .login-card > p { color: var(--muted); font-size: .9rem; line-height: 1.65; overflow-wrap: anywhere; }
+.google-signin { min-height: 44px; margin: 1.8rem 0 1.2rem; max-width: 100%; }
+.login-card .login-account-help { font-size: .8rem; }
 .login-card form { margin-top: 1.5rem; }
 .login-card label { display: block; font-weight: 600; font-size: .83rem; margin-bottom: .6rem; }
 .login-card input { width: 100%; min-height: 49px; border: 1px solid #9ba8b5; border-radius: 3px; background: #fff; padding: .85rem .9rem; color: var(--ink); font-size: 1rem; }

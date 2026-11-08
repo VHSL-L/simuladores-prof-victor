@@ -1,98 +1,106 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PageMetadata } from '../components/PageMetadata';
 
+type GoogleIdentity = {
+  initialize: (options: { client_id: string; nonce: string; hd: string; auto_select: boolean; ux_mode: 'popup'; callback: (response: { credential: string }) => void }) => void;
+  renderButton: (element: HTMLElement, options: { type: 'standard'; theme: 'outline'; size: 'large'; text: 'signin_with'; shape: 'rectangular'; locale: string; width: number }) => void;
+};
+declare global { interface Window { google?: { accounts: { id: GoogleIdentity } } } }
+let googleScript: Promise<GoogleIdentity> | undefined;
+function loadGoogle() {
+  if (window.google?.accounts.id) return Promise.resolve(window.google.accounts.id);
+  if (!googleScript) googleScript = new Promise<GoogleIdentity>((resolve, reject) => {
+    const script = document.createElement('script');
+    const timer = window.setTimeout(() => fail(), 15000);
+    const fail = () => { window.clearTimeout(timer); script.remove(); googleScript = undefined; reject(new Error('Não foi possível carregar o Google. Confira sua conexão e tente novamente.')); };
+    script.src = 'https://accounts.google.com/gsi/client'; script.async = true;
+    script.onload = () => { window.clearTimeout(timer); if (window.google?.accounts.id) resolve(window.google.accounts.id); else fail(); };
+    script.onerror = fail;
+    document.head.appendChild(script);
+  });
+  return googleScript;
+}
+// Coalesce the development StrictMode mounts so one browser receives one challenge.
+let starting: Promise<{ clientId: string; nonce: string; expiresIn: number }> | undefined;
+function startGoogle() {
+  if (!starting) starting = fetch('/api/auth/google/start', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}', cache: 'no-store',
+  }).then(async response => {
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'O acesso está temporariamente indisponível.');
+    return data;
+  }).finally(() => { starting = undefined; });
+  return starting;
+}
+
 export function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [step, setStep] = useState<'email' | 'code'>('email');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [notice, setNotice] = useState('');
-  const [cooldown, setCooldown] = useState(0);
-  const [available, setAvailable] = useState<boolean | null>(null);
+  const [ready, setReady] = useState(false);
+  const button = useRef<HTMLDivElement>(null);
+  const verifying = useRef(false);
   const requested = new URLSearchParams(window.location.search).get('next');
   const next = requested && ['/rcp', '/choque', '/ventilacao-mecanica'].includes(requested) ? requested : '/';
 
   useEffect(() => {
-    let active = true;
-    fetch('/api/auth/session', { cache: 'no-store' }).then(async response => {
-      if (!response.ok) throw new Error();
-      const data = await response.json();
-      if (!active) return;
-      if (data.user) window.location.replace(next);
-      else setAvailable(data.available === true);
-    }).catch(() => { if (active) setAvailable(false); });
-    return () => { active = false; };
-  }, [next]);
-  useEffect(() => {
-    if (cooldown <= 0) return;
-    const timer = window.setTimeout(() => setCooldown(value => Math.max(0, value - 1)), 1000);
-    return () => window.clearTimeout(timer);
-  }, [cooldown]);
-
-  async function submit(action: 'send-code' | 'verify-code') {
-    if (busy) return;
-    setError(''); setNotice('');
-    if (!/^[a-z0-9]+(?:[._+-][a-z0-9]+)*@aluno\.unc\.br$/i.test(email.trim())) {
-      setError('Use seu e-mail @aluno.unc.br. O acesso para outros e-mails ainda não está disponível.'); return;
-    }
-    setBusy(true);
-    try {
-      const response = await fetch(`/api/auth/${action}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), code, next }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        const retry = Number(response.headers.get('Retry-After'));
-        if (response.status === 429 && retry > 0) setCooldown(retry);
-        throw new Error(data.error || 'Não foi possível continuar. Tente novamente.');
+    let active = true; let expiry: number | undefined;
+    async function prepare() {
+      try {
+        const response = await fetch('/api/auth/session', { cache: 'no-store' });
+        if (!response.ok) throw new Error('O acesso está temporariamente indisponível. Tente novamente mais tarde.');
+        const session = await response.json();
+        if (!active) return;
+        if (session.user) { window.location.replace(next); return; }
+        if (!session.available) throw new Error('O acesso institucional está em preparação ou temporariamente indisponível. Tente novamente mais tarde.');
+        const [config, google] = await Promise.all([startGoogle(), loadGoogle()]);
+        if (!active || !button.current) return;
+        google.initialize({ client_id: config.clientId, nonce: config.nonce, hd: 'aluno.unc.br', auto_select: false, ux_mode: 'popup',
+          callback: async ({ credential }) => {
+            if (!active || verifying.current) return;
+            verifying.current = true; setBusy(true); setError('');
+            try {
+              const result = await fetch('/api/auth/google/verify', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ credential, next }),
+              });
+              const data = await result.json();
+              if (!result.ok) throw new Error(data.error || 'Não foi possível entrar. Tente novamente.');
+              window.location.assign(next);
+            } catch (cause) {
+              if (active) setError(cause instanceof Error ? cause.message : 'Não foi possível conectar. Tente novamente.');
+            } finally { verifying.current = false; if (active) setBusy(false); }
+          },
+        });
+        google.renderButton(button.current, { type: 'standard', theme: 'outline', size: 'large', text: 'signin_with', shape: 'rectangular', locale: 'pt-BR', width: Math.min(360, button.current.clientWidth) });
+        setReady(true);
+        expiry = window.setTimeout(() => {
+          if (active) { setReady(false); setError('Esta página ficou aberta por alguns minutos. Atualize para iniciar uma nova tentativa.'); }
+        }, config.expiresIn * 1000);
+      } catch (cause) {
+        if (active) setError(cause instanceof Error ? cause.message : 'Não foi possível preparar o acesso. Tente novamente.');
       }
-      if (action === 'verify-code') { window.location.assign(next); return; }
-      setStep('code'); setCode(''); setCooldown(data.retryAfter ?? 60);
-      setNotice('Código enviado. Confira sua caixa de entrada e a pasta de spam.');
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Não foi possível conectar. Tente novamente.');
-    } finally { setBusy(false); }
-  }
-  function onSubmit(event: FormEvent) { event.preventDefault(); void submit(step === 'email' ? 'send-code' : 'verify-code'); }
+    }
+    void prepare();
+    return () => { active = false; if (expiry) window.clearTimeout(expiry); };
+  }, [next]);
 
   return <>
-    <PageMetadata title="Entrar" description="Acesse os simuladores com seu e-mail de aluno da UNC, sem senha." />
+    <PageMetadata title="Entrar" description="Acesse os simuladores com sua conta Google institucional da UNC." />
     <section className="container login-page">
       <div className="login-intro">
         <p className="eyebrow">Área do aluno</p>
         <h1>Acesso aos simuladores</h1>
-        <p className="lead">Entre com seu e-mail institucional para iniciar a prática.</p>
+        <p className="lead">Entre com sua conta institucional para iniciar a prática.</p>
       </div>
       <div className="login-layout">
-      <div className="login-card">
-        <div className="login-card-heading"><h2>{step === 'email' ? 'Identificação' : 'Confirme seu acesso'}</h2><span>{step === 'email' ? '01' : '02'} / 02</span></div>
-        <p>{step === 'email' ? 'Enviaremos um código de 6 dígitos para seu e-mail. Não é necessário criar uma senha.' : <>Enviamos um código para <strong>{email.trim().toLowerCase()}</strong>. Ele vale por 10 minutos; use sempre o mais recente.</>}</p>
-        {available === false && <p className="auth-message" role="status">O acesso por e-mail está em preparação ou temporariamente indisponível. Tente novamente mais tarde.</p>}
-        <form onSubmit={onSubmit} aria-busy={busy}>
-          {step === 'email' ? <>
-            <label htmlFor="student-email">E-mail institucional</label>
-            <input id="student-email" type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} required maxLength={254}
-              placeholder="seunome@aluno.unc.br" value={email} onChange={event => setEmail(event.target.value)} disabled={busy} />
-          </> : <>
-            <label htmlFor="access-code">Código de acesso</label>
-            <input id="access-code" className="code-input" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} minLength={6} required autoFocus
-              placeholder="000000" value={code} onChange={event => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} disabled={busy} />
-          </>}
-          {error && <p className="auth-message auth-error" role="alert">{error}</p>}
-          {notice && <p className="auth-message" role="status">{notice}</p>}
-          <button className="button primary" type="submit" disabled={busy || available !== true || (step === 'email' && cooldown > 0)}>
-            {busy ? 'Aguarde…' : available === null ? 'Verificando acesso…' : step === 'email' ? cooldown > 0 ? `Aguarde ${cooldown}s` : 'Receber código' : 'Entrar nos simuladores'}
-          </button>
-          {step === 'code' && <div className="login-actions">
-            <button type="button" className="plain-button" disabled={busy || cooldown > 0} onClick={() => void submit('send-code')}>
-              {cooldown > 0 ? `Reenviar em ${cooldown}s` : 'Reenviar código'}
-            </button>
-            <button type="button" className="plain-button" disabled={busy} onClick={() => { setStep('email'); setCode(''); setError(''); setNotice(''); }}>Corrigir e-mail</button>
-          </div>}
-        </form>
-        <p className="login-privacy">Usamos seu e-mail para verificar seu acesso. Em um computador compartilhado, saia ao terminar. <a href="/privacidade">Saiba mais</a>.</p>
+      <div className="login-card" aria-busy={busy}>
+        <div className="login-card-heading"><h2>Conta institucional</h2><span>UNC</span></div>
+        <p>Use a mesma conta Google do seu e-mail <strong>@aluno.unc.br</strong>. Não é necessário criar uma nova senha.</p>
+        <div className="google-signin" ref={button} inert={busy || !ready} style={{ visibility: ready ? 'visible' : 'hidden' }} />
+        {!ready && !error && <p role="status">Preparando acesso…</p>}
+        {busy && <p role="status">Confirmando sua conta…</p>}
+        {error && <><p className="auth-message auth-error" role="alert">{error}</p><button className="plain-button" onClick={() => window.location.reload()} disabled={busy}>Atualizar e tentar novamente</button></>}
+        <p className="login-account-help">Se o Google mostrar sua conta pessoal, escolha outra conta e entre com o e-mail de aluno.</p>
+        <p className="login-privacy">O site recebe a identificação da sua conta, sem acesso à caixa de e-mail ou à sua senha. Em um computador compartilhado, saia ao terminar. <a href="/privacidade">Saiba mais</a>.</p>
       </div>
       <aside className="login-sidebar" aria-label="Informações sobre os simuladores">
         <div className="practice-index">

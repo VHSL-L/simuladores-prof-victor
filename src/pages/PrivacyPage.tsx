@@ -5,11 +5,11 @@ export function PrivacyPage() {
     <section className="simple-page container privacy-page">
       <p className="eyebrow">Área do aluno</p><h1>Privacidade no acesso</h1>
       <h2>O que é usado para entrar</h2>
-      <p>Seu e-mail institucional é usado para enviar o código de acesso e identificar sua conta. Guardamos o e-mail, um identificador interno, a categoria e situação do acesso e as datas de criação e último login. Não pedimos uma senha.</p>
-      <h2>Códigos e sessão</h2>
-      <p>O código vale por 10 minutos e só pode ser usado uma vez. Após a confirmação, um cookie necessário mantém a sessão por até 7 dias neste navegador. Use “Sair” ao terminar em um computador compartilhado. O código e o identificador da sessão não são armazenados em texto aberto no banco de dados.</p>
-      <h2>Envio e segurança</h2>
-      <p>A hospedagem e a verificação de acesso usam a Cloudflare. O envio de códigos é preparado para o serviço Resend, que recebe o endereço de destino e a mensagem de autenticação. Limitamos tentativas para reduzir abusos; o endereço de rede é transformado em um identificador criptográfico para essa finalidade. Registros temporários de códigos, sessões e limites são removidos após expirar durante a manutenção automática.</p>
+      <p>O Google confirma sua identidade e o vínculo da conta com o domínio institucional. Guardamos o e-mail, o identificador da conta Google, um identificador interno, a categoria e situação do acesso e as datas de criação e último login. Não armazenamos sua foto, sua senha, nem o comprovante de identidade enviado pelo Google. O site não solicita acesso à caixa de e-mail, contatos ou arquivos do Google Drive.</p>
+      <h2>Cookies e sessão</h2>
+      <p>Um cookie temporário de até 10 minutos vincula a tentativa de entrada a este navegador. Após a confirmação, outro cookie necessário mantém sua sessão por até 7 dias. Use “Sair” ao terminar em um computador compartilhado. Os identificadores temporários são armazenados no banco somente como resumos criptográficos, e a tentativa de entrada só pode ser concluída uma vez.</p>
+      <h2>Serviços e segurança</h2>
+      <p>A hospedagem e o banco de acesso usam a Cloudflare. A página de entrada carrega o serviço de identificação do Google; a confirmação acontece na conta Google escolhida por você. Limitamos tentativas para reduzir abusos. Para isso, usamos um identificador temporário derivado do endereço de rede, que muda diariamente; não guardamos esse endereço em texto aberto no banco de acesso. Registros temporários de tentativas, sessões e limites são removidos após expirar durante a manutenção automática.</p>
       <h2>Uso educacional</h2>
       <p>Este controle de acesso não registra respostas, notas ou desempenho nos simuladores. Não insira dados de pacientes nas ferramentas.</p>
       <h2>Contato</h2>
