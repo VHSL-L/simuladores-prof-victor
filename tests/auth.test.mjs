@@ -4,6 +4,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { readFileSync, readdirSync } from 'node:fs';
 import { generateKeyPair, exportJWK, SignJWT } from 'jose';
 import worker, { normalizeEmail, safeNext } from '../dist/_worker.js';
+import { PROFESSOR_EMAIL } from '../server/access-policy.mjs';
 
 const { privateKey, publicKey } = await generateKeyPair('RS256');
 const publicJwk = { ...await exportJWK(publicKey), kid: 'test-key', alg: 'RS256', use: 'sig' };
@@ -11,6 +12,7 @@ const clientId = '123456-test.apps.googleusercontent.com';
 const email = 'aluno@aluno.unc.br';
 function database() {
   const sql = new DatabaseSync(':memory:');
+  let queue = Promise.resolve();
   for (const migration of readdirSync('migrations').sort()) sql.exec(readFileSync('migrations/' + migration, 'utf8'));
   function prepare(query) {
     let values = [];
@@ -18,12 +20,16 @@ function database() {
       bind(...args) { values = args; return this; },
       async first() { return sql.prepare(query).get(...values) ?? null; },
       async run() { return sql.prepare(query).run(...values); },
+      async all() { return { results: sql.prepare(query).all(...values) }; },
     };
   }
-  return { sql, prepare, async batch(statements) {
-    sql.exec('BEGIN');
-    try { const out = []; for (const statement of statements) out.push(await statement.run()); sql.exec('COMMIT'); return out; }
-    catch (error) { sql.exec('ROLLBACK'); throw error; }
+  return { sql, prepare, batch(statements) {
+    const job = queue.then(async () => {
+      sql.exec('BEGIN');
+      try { const out = []; for (const statement of statements) out.push(await statement.run()); sql.exec('COMMIT'); return out; }
+      catch (error) { sql.exec('ROLLBACK'); throw error; }
+    });
+    queue = job.catch(() => {}); return job;
   } };
 }
 function setup(t) {
@@ -69,7 +75,7 @@ test('domínio exato e redirecionamento local', () => {
 
 test('site público abre; todas as entradas e arquivos dos simuladores exigem sessão', async t => {
   const { request } = setup(t);
-  for (const path of ['/', '/sobre', '/entrar', '/privacidade', '/favicon.svg']) assert.equal((await request(path)).status, 200, path);
+  for (const path of ['/', '/sobre', '/entrar', '/professor/entrar', '/privacidade', '/favicon.svg']) assert.equal((await request(path)).status, 200, path);
   const paths = ['/rcp', '/choque/', '/ventilacao-mecanica', '/simulators/rcp/index.html', '/simulators/choque/', '/simulators/ventilacao-mecanica/index.html', '/simulators%2frcp%2findex.html', '/%73imulators/rcp/index.html', '/assets/unknown.js.map'];
   for (const file of readdirSync('dist/assets')) if (/^(choque|ventilacao)-/.test(file)) paths.push('/assets/' + file);
   for (const path of paths) {
@@ -199,4 +205,124 @@ test('falta de configuração, banco ou identidade Google não cria bypass', asy
   assert.equal((await (await request('/api/auth/session', undefined, {}, { AUTH_DB: undefined })).json()).available, false);
   const Cookie = await login(); db.sql.prepare('UPDATE users SET google_sub=NULL').run();
   assert.equal((await request('/rcp', undefined, { Cookie })).status, 303);
+});
+
+const professorClaims = { email: PROFESSOR_EMAIL, sub: 'google-professor-1', hd: undefined };
+
+test('somente a conta Google exata do professor recebe a função administrativa', async t => {
+  const { request, login, start, token, db } = setup(t);
+  const Cookie = await login(professorClaims);
+  assert.match(Cookie, /Max-Age=28800/);
+  assert.equal((await (await request('/api/auth/session', undefined, { Cookie })).json()).user.role, 'professor');
+  assert.equal((await request('/api/professor/overview', undefined, { Cookie })).status, 200);
+  assert.equal((await request('/simulators/rcp/index.html', undefined, { Cookie })).status, 200);
+  const challenge = await start();
+  for (const overrides of [
+    { email: 'another@gmail.com' }, { email: 'santana.lourenco+admin@gmail.com' },
+    { email: PROFESSOR_EMAIL + '.evil.com' }, { email: PROFESSOR_EMAIL, email_verified: false },
+  ]) {
+    assert.equal((await request('/api/auth/google/verify', { credential: await token(challenge.nonce, { ...professorClaims, sub: 'attacker', ...overrides }), role: 'professor' }, { Cookie: challenge.Cookie })).status, 403);
+  }
+  assert.equal(db.sql.prepare("SELECT count(*) n FROM users WHERE role='professor'").get().n, 1);
+});
+
+test('sem sessão e alunos não podem ler ou alterar cadastros, mesmo forjando função', async t => {
+  const { request, login, start, token, db } = setup(t);
+  assert.equal((await request('/api/professor/overview')).status, 401);
+  const redirect = await request('/professor');
+  assert.equal(redirect.status, 303); assert.match(redirect.headers.get('location'), /^\/professor\/entrar/);
+  const Cookie = await login();
+  for (const path of ['/api/professor/overview', '/api/professor/users']) assert.equal((await request(path, undefined, { Cookie, 'X-Role': 'professor' })).status, 403);
+  const id = db.sql.prepare('SELECT id FROM users').get().id;
+  assert.equal((await request(`/api/professor/users/${id}/status`, { status: 'blocked', version: '', role: 'professor' }, { Cookie })).status, 403);
+  const challenge = await start();
+  assert.equal((await request('/api/auth/google/verify', { credential: await token(challenge.nonce), mode: 'professor' }, { Cookie: challenge.Cookie })).status, 403);
+  db.sql.prepare("UPDATE users SET role='professor'").run();
+  assert.equal((await request('/api/professor/overview', undefined, { Cookie })).status, 401);
+});
+
+test('painel conta apenas alunos institucionais e pagina mais de cinquenta cadastros', async t => {
+  const { request, login, db } = setup(t); const Cookie = await login(professorClaims);
+  const now = Math.floor(Date.now() / 1000);
+  const insert = db.sql.prepare('INSERT INTO users (id,email,google_sub,status,created_at,last_login_at) VALUES (?,?,?,?,?,?)');
+  for (let i = 0; i < 62; i++) insert.run(`student-${String(i).padStart(3, '0')}`, `student${i}@aluno.unc.br`, `google-student-${i}`, i < 5 ? 'blocked' : 'active', now, i < 12 ? now : now - 10 * 86400);
+  db.sql.prepare("INSERT INTO users (id,email,access_kind,created_at,last_login_at) VALUES ('paid','external@example.invalid','paid',?,?)").run(now,now);
+  const overview = await (await request('/api/professor/overview', undefined, { Cookie })).json();
+  assert.deepEqual(overview, { total: 62, active: 57, blocked: 5, recent: 12 });
+  const all = [];
+  for (let page = 1; page <= 3; page++) {
+    const response = await request(`/api/professor/users?page=${page}`, undefined, { Cookie });
+    assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
+    const list = await response.json();
+    assert.equal(list.total, 62); assert.equal(list.pages, 3); assert.ok(list.users.length <= 25);
+    all.push(...list.users);
+  }
+  assert.equal(new Set(all.map(u => u.id)).size, 62);
+  assert.deepEqual(Object.keys(all[0]).sort(), ['id','email','status','createdAt','lastLoginAt','version'].sort());
+  const filtered = await (await request('/api/professor/users?status=blocked&q=student1', undefined, { Cookie })).json();
+  assert.equal(filtered.total, 1); assert.equal(filtered.users[0].email, 'student1@aluno.unc.br');
+  assert.equal((await (await request('/api/professor/users?q=%25', undefined, { Cookie })).json()).total, 0);
+  assert.equal((await request('/api/professor/users?page=-1', undefined, { Cookie })).status, 400);
+  assert.equal((await request('/api/professor/users?status=professor', undefined, { Cookie })).status, 400);
+});
+
+test('bloqueio encerra sessões, impede novo login e reativação não revive sessão antiga', async t => {
+  const { request, login, start, token, db } = setup(t);
+  const studentCookie = await login(); const professorCookie = await login(professorClaims);
+  const student = db.sql.prepare("SELECT id FROM users WHERE role='student'").get();
+  const path = `/api/professor/users/${student.id}/status`;
+  assert.equal((await request(path, { status: 'blocked', version: '' }, { Cookie: professorCookie })).status, 200);
+  assert.equal((await request('/rcp', undefined, { Cookie: studentCookie })).status, 303);
+  assert.equal(db.sql.prepare('SELECT count(*) n FROM sessions WHERE user_id=?').get(student.id).n, 0);
+  const challenge = await start();
+  assert.equal((await request('/api/auth/google/verify', { credential: await token(challenge.nonce) }, { Cookie: challenge.Cookie })).status, 403);
+  const version = db.sql.prepare('SELECT last_access_change FROM users WHERE id=?').get(student.id).last_access_change;
+  assert.equal((await request(path, { status: 'active', version }, { Cookie: professorCookie })).status, 200);
+  assert.equal((await request('/rcp', undefined, { Cookie: studentCookie })).status, 303);
+  const newCookie = await login(); assert.equal((await request('/rcp', undefined, { Cookie: newCookie })).status, 200);
+  const changes = db.sql.prepare('SELECT previous_status,new_status,actor_id FROM access_changes ORDER BY rowid').all();
+  assert.deepEqual(changes.map(x => [x.previous_status,x.new_status]), [['active','blocked'],['blocked','active']]);
+  assert.ok(changes.every(x => x.actor_id !== student.id));
+});
+
+test('origem externa, alteração da própria conta e corpo inválido são rejeitados', async t => {
+  const { request, login, db } = setup(t); await login(); const Cookie = await login(professorClaims);
+  const student = db.sql.prepare("SELECT id FROM users WHERE role='student'").get();
+  const professor = db.sql.prepare("SELECT id FROM users WHERE role='professor'").get();
+  const path = `/api/professor/users/${student.id}/status`;
+  assert.equal((await request(path, { status:'blocked', version:'' }, { Cookie, Origin:'https://evil.invalid' })).status, 403);
+  assert.equal((await request(path, { status:'professor', version:'' }, { Cookie })).status, 400);
+  assert.equal((await request(path, { status:'blocked' }, { Cookie })).status, 400);
+  assert.equal((await request(`/api/professor/users/${professor.id}/status`, { status:'blocked',version:'' }, { Cookie })).status, 404);
+  assert.equal((await request(path, undefined, { Cookie })).status, 405);
+  assert.equal(db.sql.prepare('SELECT count(*) n FROM access_changes').get().n, 0);
+});
+
+test('ações concorrentes e versões antigas não duplicam alterações nem auditoria', async t => {
+  const { request, login, db } = setup(t); await login(); const Cookie = await login(professorClaims);
+  const { id } = db.sql.prepare("SELECT id FROM users WHERE role='student'").get();
+  const path = `/api/professor/users/${id}/status`;
+  const results = await Promise.all([request(path, { status:'blocked',version:'' }, { Cookie }), request(path, { status:'blocked',version:'' }, { Cookie })]);
+  assert.deepEqual(results.map(r=>r.status).sort(), [200,409]);
+  assert.equal(db.sql.prepare('SELECT count(*) n FROM access_changes').get().n, 1);
+  assert.equal((await request(path, { status:'active',version:'' }, { Cookie })).status, 409);
+  assert.equal(db.sql.prepare('SELECT status FROM users WHERE id=?').get(id).status, 'blocked');
+});
+
+test('falha da auditoria desfaz o bloqueio e preserva as sessões', async t => {
+  const { request, login, db } = setup(t); const studentCookie = await login(); const Cookie = await login(professorClaims);
+  const { id } = db.sql.prepare("SELECT id FROM users WHERE role='student'").get();
+  db.sql.exec("CREATE TRIGGER fail_audit BEFORE INSERT ON access_changes BEGIN SELECT RAISE(ABORT, 'test failure'); END");
+  assert.equal((await request(`/api/professor/users/${id}/status`, {status:'blocked',version:''}, {Cookie})).status, 503);
+  assert.equal(db.sql.prepare('SELECT status FROM users WHERE id=?').get(id).status, 'active');
+  assert.equal((await request('/rcp', undefined, {Cookie:studentCookie})).status, 200);
+});
+
+test('sessão administrativa expirada ou professor bloqueado perde acesso ao painel', async t => {
+  const { request, login, db } = setup(t); const Cookie = await login(professorClaims);
+  db.sql.prepare("UPDATE users SET status='blocked' WHERE role='professor'").run();
+  assert.equal((await request('/api/professor/users', undefined, {Cookie})).status, 401);
+  db.sql.prepare("UPDATE users SET status='active' WHERE role='professor'").run();
+  db.sql.prepare('UPDATE sessions SET expires_at=0').run();
+  assert.equal((await request('/api/professor/overview', undefined, {Cookie})).status, 401);
 });

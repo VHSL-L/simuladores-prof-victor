@@ -73,8 +73,10 @@ O acesso direto às rotas usa o [fallback SPA nativo do Cloudflare Pages](https:
 - `/sobre`
 - `/entrar`
 - `/privacidade`
+- `/professor/entrar`
+- `/professor`
 
-Início, Sobre, entrada e privacidade são públicos. Os três simuladores e seus arquivos diretos exigem uma sessão institucional válida. `npm run dev` é somente uma prévia visual, sem proteção de servidor; para testar autenticação, usar o Worker conforme `AUTH_SETUP.md`.
+Início, Sobre, entradas e privacidade são públicos. O painel do professor usa a conta Google autorizada do responsável, mostra cadastros/últimas entradas e permite bloquear ou reativar alunos; não registra notas ou desempenho. Os três simuladores e seus arquivos diretos exigem uma sessão institucional válida. `npm run dev` é somente uma prévia visual, sem proteção de servidor; para testar autenticação, usar o Worker conforme `AUTH_SETUP.md`.
 
 ## Como adicionar um simulador
 

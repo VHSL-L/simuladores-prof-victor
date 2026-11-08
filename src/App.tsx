@@ -6,6 +6,7 @@ import { RcpPage } from "./pages/RcpPage";
 import { AboutPage } from "./pages/AboutPage";
 import { LoginPage } from "./pages/LoginPage";
 import { PrivacyPage } from "./pages/PrivacyPage";
+import { ProfessorPage } from "./pages/ProfessorPage";
 
 const normalizePath = (path: string) =>
   path !== "/" ? path.replace(/\/+$/, "") : path;
@@ -15,6 +16,12 @@ export default function App() {
 
   let page;
   switch (path) {
+    case "/professor":
+      page = <ProfessorPage />;
+      break;
+    case "/professor/entrar":
+      page = <LoginPage mode="professor" />;
+      break;
     case "/entrar":
       page = <LoginPage />;
       break;

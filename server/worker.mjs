@@ -1,11 +1,13 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose';
+import { PROFESSOR_EMAIL, isProfessor } from './access-policy.mjs';
 
 // Filled at build time from the public platform's dependency graph, not simulator assets.
 const PUBLIC_ASSETS = new Set(/* PUBLIC_ASSETS */ []);
-const PUBLIC_PAGES = new Set(['/', '/sobre', '/entrar', '/privacidade']);
+const PUBLIC_PAGES = new Set(['/', '/sobre', '/entrar', '/privacidade', '/professor/entrar']);
 const COOKIE = '__Host-simuladores_session';
 const NONCE_COOKIE = '__Host-simuladores_google';
 const SESSION_SECONDS = 7 * 24 * 60 * 60;
+const PROFESSOR_SESSION_SECONDS = 8 * 60 * 60;
 const CHALLENGE_SECONDS = 10 * 60;
 const GOOGLE_KEYS = createRemoteJWKSet(new URL('https://www.googleapis.com/oauth2/v3/certs'), {
   timeoutDuration: 5000, cacheMaxAge: 600000,
@@ -26,7 +28,7 @@ export function normalizeEmail(input) {
   return email;
 }
 export function safeNext(input) {
-  return ['/rcp', '/choque', '/ventilacao-mecanica'].includes(input) ? input : '/';
+  return ['/rcp', '/choque', '/ventilacao-mecanica', '/professor'].includes(input) ? input : '/';
 }
 const hex = (bytes) => Array.from(new Uint8Array(bytes), b => b.toString(16).padStart(2, '0')).join('');
 const randomToken = () => hex(crypto.getRandomValues(new Uint8Array(32)));
@@ -44,11 +46,11 @@ function ready(env) {
 async function userFor(request, env, now) {
   const token = readCookie(request);
   if (!token || !env.AUTH_DB) return null;
-  const user = await env.AUTH_DB.prepare(`SELECT u.id, u.email, u.access_kind FROM sessions s
+  const user = await env.AUTH_DB.prepare(`SELECT u.id, u.email, u.access_kind, u.role, u.google_sub FROM sessions s
     JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ? AND u.status = 'active' AND u.google_sub IS NOT NULL`)
     .bind(await hash(token), now).first();
   // Paid access is reserved for a later, server-verified entitlement integration.
-  return user?.access_kind === 'unc' && normalizeEmail(user.email) ? user : null;
+  return isProfessor(user) || (user?.role === 'student' && user.access_kind === 'unc' && normalizeEmail(user.email)) ? user : null;
 }
 async function limit(env, key, max, seconds, now) {
   const bucket = Math.floor(now / seconds);
@@ -106,7 +108,7 @@ async function verifyGoogle(request, env, body, now) {
     ({ payload: claims } = await jwtVerify(body.credential, GOOGLE_KEYS, {
       algorithms: ['RS256'], audience: env.GOOGLE_CLIENT_ID,
       issuer: ['accounts.google.com', 'https://accounts.google.com'],
-      requiredClaims: ['sub', 'email', 'email_verified', 'hd', 'iat', 'exp', 'nonce'],
+      requiredClaims: ['sub', 'email', 'email_verified', 'iat', 'exp', 'nonce'],
       maxTokenAge: '10m', currentDate: new Date(now * 1000),
     }));
   } catch {
@@ -117,15 +119,18 @@ async function verifyGoogle(request, env, body, now) {
       typeof claims.sub !== 'string' || !claims.sub || claims.sub.length > 255) {
     throw new HttpError(401, 'Confirmação de acesso inválida. Recarregue a página e tente novamente.');
   }
-  const email = normalizeEmail(claims.email);
-  // The verified Workspace domain is required in addition to the exact email domain.
-  if (!email || claims.email_verified !== true || claims.hd !== 'aluno.unc.br') {
+  const professor = claims.email_verified === true && claims.email === PROFESSOR_EMAIL;
+  const email = professor ? PROFESSOR_EMAIL : normalizeEmail(claims.email);
+  // Google is authoritative for the owner's exact Gmail account. Students still require Workspace hd.
+  if (!email || claims.email_verified !== true || (!professor && claims.hd !== 'aluno.unc.br')) {
     throw new HttpError(403, 'Use sua conta Google @aluno.unc.br. Contas pessoais e de outras instituições ainda não têm acesso.');
   }
-  const existing = await env.AUTH_DB.prepare('SELECT google_sub, status, access_kind FROM users WHERE google_sub = ? OR email = ?')
+  if (body.mode === 'professor' && !professor) throw new HttpError(403, 'Esta área é exclusiva do professor. Escolha a conta Google autorizada.');
+  const role = professor ? 'professor' : 'student';
+  const existing = await env.AUTH_DB.prepare('SELECT google_sub, status, access_kind, role FROM users WHERE google_sub = ? OR email = ?')
     .bind(claims.sub, email).first();
   // Never link accounts by email alone or silently reactivate a blocked/paid account.
-  if (existing && (existing.google_sub !== claims.sub || existing.status !== 'active' || existing.access_kind !== 'unc')) {
+  if (existing && (existing.google_sub !== claims.sub || existing.status !== 'active' || existing.role !== role || (!professor && existing.access_kind !== 'unc'))) {
     throw new HttpError(403, 'Seu acesso não está disponível. Entre em contato com o professor.');
   }
   const consumed = await env.AUTH_DB.prepare('DELETE FROM google_challenges WHERE nonce_hash = ? AND expires_at > ? RETURNING nonce_hash')
@@ -133,29 +138,96 @@ async function verifyGoogle(request, env, body, now) {
   if (!consumed) throw new HttpError(400, 'Esta tentativa já foi utilizada. Recarregue a página para entrar.');
   const token = randomToken(); const tokenHash = await hash(token);
   const oldToken = readCookie(request);
+  const sessionSeconds = professor ? PROFESSOR_SESSION_SECONDS : SESSION_SECONDS;
   await env.AUTH_DB.batch([
-    env.AUTH_DB.prepare(`INSERT INTO users (id, email, google_sub, created_at, last_login_at) VALUES (?, ?, ?, ?, ?)
+    env.AUTH_DB.prepare(`INSERT INTO users (id, email, google_sub, role, created_at, last_login_at) VALUES (?, ?, ?, ?, ?, ?)
       ON CONFLICT(google_sub) DO UPDATE SET email = excluded.email, last_login_at = excluded.last_login_at`)
-      .bind(crypto.randomUUID(), email, claims.sub, now, now),
+      .bind(crypto.randomUUID(), email, claims.sub, role, now, now),
     env.AUTH_DB.prepare('DELETE FROM sessions WHERE token_hash = ?').bind(oldToken ? await hash(oldToken) : ''),
     env.AUTH_DB.prepare(`INSERT INTO sessions (token_hash, user_id, expires_at)
-      SELECT ?, id, ? FROM users WHERE google_sub = ? AND email = ? AND status = 'active' AND access_kind = 'unc'`)
-      .bind(tokenHash, now + SESSION_SECONDS, claims.sub, email),
+      SELECT ?, id, ? FROM users WHERE google_sub = ? AND email = ? AND status = 'active' AND role = ?`)
+      .bind(tokenHash, now + sessionSeconds, claims.sub, email, role),
   ]);
   const exists = await env.AUTH_DB.prepare('SELECT user_id FROM sessions WHERE token_hash = ?').bind(tokenHash).first();
   if (!exists) throw new HttpError(403, 'Seu acesso não está disponível. Entre em contato com o professor.');
   const headers = new Headers();
-  headers.append('Set-Cookie', cookie(token));
+  headers.append('Set-Cookie', cookie(token, sessionSeconds));
   headers.append('Set-Cookie', cookie('', 0, NONCE_COOKIE));
-  return new Response(JSON.stringify({ ok: true, next: safeNext(body.next) }), {
+  const next = safeNext(body.next);
+  return new Response(JSON.stringify({ ok: true, next: !professor && next === '/professor' ? '/' : next }), {
     headers: new Headers([...headers, ['Content-Type', 'application/json; charset=utf-8']]),
   });
 }
+async function professorApi(request, env, now) {
+  const user = await userFor(request, env, now);
+  if (!user) throw new HttpError(401, 'Entre novamente com a conta do professor.');
+  if (!isProfessor(user)) throw new HttpError(403, 'Esta área é exclusiva do professor.');
+  const url = new URL(request.url);
+  if (url.pathname === '/api/professor/overview' && request.method === 'GET') {
+    const overview = await env.AUTH_DB.prepare(`SELECT COUNT(*) AS total,
+      COALESCE(SUM(status = 'active'), 0) AS active,
+      COALESCE(SUM(status = 'blocked'), 0) AS blocked,
+      COALESCE(SUM(last_login_at >= ?), 0) AS recent
+      FROM users WHERE role = 'student' AND access_kind = 'unc'`).bind(now - 7 * 86400).first();
+    return json(overview);
+  }
+  if (url.pathname === '/api/professor/users' && request.method === 'GET') {
+    const q = (url.searchParams.get('q') ?? '').trim().toLowerCase();
+    const status = url.searchParams.get('status') ?? 'all';
+    const rawPage = url.searchParams.get('page') ?? '1';
+    if (q.length > 254 || !['all', 'active', 'blocked'].includes(status) || !/^[1-9]\d{0,4}$/.test(rawPage)) {
+      throw new HttpError(400, 'Confira os filtros e tente novamente.');
+    }
+    const where = "role = 'student' AND access_kind = 'unc' AND instr(email, ?) > 0 AND (? = 'all' OR status = ?)";
+    const { total } = await env.AUTH_DB.prepare(`SELECT COUNT(*) AS total FROM users WHERE ${where}`).bind(q, status, status).first();
+    const pageSize = 25;
+    const pages = Math.max(1, Math.ceil(total / pageSize));
+    const page = Math.min(Number(rawPage), pages);
+    const { results } = await env.AUTH_DB.prepare(`SELECT id, email, status, created_at AS createdAt,
+      last_login_at AS lastLoginAt, last_access_change AS version FROM users WHERE ${where}
+      ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?`).bind(q, status, status, pageSize, (page - 1) * pageSize).all();
+    return json({ users: results, total, page, pages, pageSize });
+  }
+  const match = url.pathname.match(/^\/api\/professor\/users\/([a-zA-Z0-9-]{1,64})\/status$/);
+  if (!match) throw new HttpError(404, 'Não encontrado.');
+  if (request.method !== 'POST') throw new HttpError(405, 'Método não permitido.', { Allow: 'POST' });
+  if (request.headers.get('Origin') !== url.origin) throw new HttpError(403, 'Origem não permitida.');
+  await limit(env, `professor:${user.id}`, 60, 600, now);
+  const body = await readBody(request);
+  if (!['active', 'blocked'].includes(body.status) || typeof body.version !== 'string' || body.version.length > 36) {
+    throw new HttpError(400, 'Alteração de acesso inválida.');
+  }
+  const target = await env.AUTH_DB.prepare("SELECT id, status, last_access_change FROM users WHERE id = ? AND role = 'student' AND access_kind = 'unc'")
+    .bind(match[1]).first();
+  if (!target || target.id === user.id) throw new HttpError(404, 'Cadastro de aluno não encontrado.');
+  if (target.last_access_change !== body.version || target.status === body.status) {
+    throw new HttpError(409, 'O acesso desta conta mudou. Atualize a lista antes de tentar novamente.');
+  }
+  const changeId = crypto.randomUUID();
+  // The unique change ID makes status, session revocation and audit one atomic operation.
+  // A stale/concurrent request cannot write an audit event or revive old sessions.
+  await env.AUTH_DB.batch([
+    env.AUTH_DB.prepare(`UPDATE users SET status = ?, last_access_change = ?
+      WHERE id = ? AND role = 'student' AND access_kind = 'unc' AND status = ? AND last_access_change = ?
+      AND EXISTS (SELECT 1 FROM users actor WHERE actor.id = ? AND actor.role = 'professor' AND actor.email = ? AND actor.status = 'active')`)
+      .bind(body.status, changeId, target.id, target.status, body.version, user.id, PROFESSOR_EMAIL),
+    env.AUTH_DB.prepare(`INSERT INTO access_changes (id, actor_id, user_id, previous_status, new_status, created_at)
+      SELECT ?, ?, id, ?, status, ? FROM users WHERE id = ? AND last_access_change = ?`)
+      .bind(changeId, user.id, target.status, now, target.id, changeId),
+    env.AUTH_DB.prepare(`DELETE FROM sessions WHERE user_id = ?
+      AND EXISTS (SELECT 1 FROM users WHERE id = ? AND last_access_change = ?)`)
+      .bind(target.id, target.id, changeId),
+  ]);
+  const changed = await env.AUTH_DB.prepare('SELECT id FROM access_changes WHERE id = ?').bind(changeId).first();
+  if (!changed) throw new HttpError(409, 'O acesso desta conta mudou. Atualize a lista antes de tentar novamente.');
+  return json({ ok: true });
+}
 async function api(request, env, now) {
   const path = new URL(request.url).pathname;
+  if (path.startsWith('/api/professor/')) return professorApi(request, env, now);
   if (path === '/api/auth/session' && request.method === 'GET') {
     const user = await userFor(request, env, now);
-    return json({ user: user ? { email: user.email, accessKind: user.access_kind } : null, available: ready(env) });
+    return json({ user: user ? { email: user.email, accessKind: user.access_kind, role: user.role } : null, available: ready(env) });
   }
   if (!['/api/auth/google/start', '/api/auth/google/verify', '/api/auth/logout'].includes(path)) throw new HttpError(404, 'Não encontrado.');
   if (request.method !== 'POST') throw new HttpError(405, 'Método não permitido.', { Allow: 'POST' });
@@ -180,7 +252,8 @@ async function handle(request, env, ctx) {
   // Deny by default: every non-public file (including raw HTML, JS and encoded aliases) needs a session.
   if (!PUBLIC_PAGES.has(path) && !PUBLIC_ASSETS.has(url.pathname)) {
     if (!await userFor(request, env, now)) {
-      return new Response(null, { status: 303, headers: { Location: `/entrar?next=${encodeURIComponent(safeNext(path))}` } });
+      const entry = path === '/professor' ? '/professor/entrar' : '/entrar';
+      return new Response(null, { status: 303, headers: { Location: `${entry}?next=${encodeURIComponent(safeNext(path))}` } });
     }
   }
   if (env.AUTH_DB && crypto.getRandomValues(new Uint8Array(1))[0] === 0) {

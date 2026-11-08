@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 export function AccountLink() {
   const [signedIn, setSignedIn] = useState(false);
+  const [professor, setProfessor] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   useEffect(() => {
     let active = true;
     fetch('/api/auth/session', { cache: 'no-store' }).then(r => r.ok ? r.json() : null)
-      .then(data => { if (active) setSignedIn(Boolean(data?.user)); }).catch(() => {});
+      .then(data => { if (active) { setSignedIn(Boolean(data?.user)); setProfessor(data?.user?.role === 'professor'); } }).catch(() => {});
     return () => { active = false; };
   }, []);
   async function logout() {
@@ -17,5 +18,5 @@ export function AccountLink() {
       window.location.assign('/entrar');
     } catch { setError(true); setBusy(false); }
   }
-  return signedIn ? <span className="account-control"><button className="plain-button" disabled={busy} onClick={() => void logout()}>{busy ? 'Saindo…' : 'Sair'}</button>{error && <span role="alert">Não foi possível sair. Tente novamente.</span>}</span> : <a href="/entrar">Entrar</a>;
+  return signedIn ? <span className="account-control">{professor && <a href="/professor" className="professor-nav">Painel do professor</a>}<button className="plain-button" disabled={busy} onClick={() => void logout()}>{busy ? 'Saindo…' : 'Sair'}</button>{error && <span role="alert">Não foi possível sair. Tente novamente.</span>}</span> : <a href="/entrar">Entrar</a>;
 }

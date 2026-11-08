@@ -65,6 +65,7 @@ export function SiteLayout({ children, currentPath }: SiteLayoutProps) {
             <a href="/sobre#aviso-importante">Aviso importante</a>
             <a href="/sobre#referencias">Referências</a>
             <a href="/privacidade">Privacidade no acesso</a>
+            <a href="/professor">Área do professor</a>
           </nav>
           <p className="footer-meta">
             © {new Date().getFullYear()} Prof. Victor Hugo Sant&apos;Ana
