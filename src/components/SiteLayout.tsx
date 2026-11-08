@@ -38,7 +38,7 @@ export function SiteLayout({ children, currentPath }: SiteLayoutProps) {
         <div className="container header-inner">
           <a className="brand" href="/" aria-label="Ir para o início">
             <span className="brand-mark" aria-hidden="true">VH</span>
-            <span>Simuladores do Prof. Victor Hugo Sant&apos;Ana</span>
+            <span className="brand-copy"><strong>Simuladores clínicos</strong><small>Prof. Victor Hugo Sant&apos;Ana</small></span>
           </a>
           <nav className="desktop-nav" aria-label="Navegação principal">
             <NavLinks currentPath={currentPath} />

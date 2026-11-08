@@ -15,18 +15,15 @@ export function SimulatorCard({
 }: SimulatorCardProps) {
   return (
     <article className="simulator-card">
-      <div className="card-topline">
-        <span className="card-index" aria-hidden="true">{index}</span>
-        <span className={available ? "status available" : "status"}>
-          {available ? "Disponível" : "Em breve"}
-        </span>
+      <span className="card-index" aria-hidden="true">{index}</span>
+      <div className="card-content">
+        <h3>{title}</h3>
+        <p>{description}</p>
       </div>
-      <h2>{title}</h2>
-      <p>{description}</p>
       {available && href ? (
-        <a className="button primary" href={href}>Iniciar simulador</a>
+        <a className="module-link" href={href} aria-label={`Abrir simulador de ${title}`}>Abrir simulador <span aria-hidden="true">↗</span></a>
       ) : (
-        <span className="button disabled" aria-disabled="true">Em breve</span>
+        <span className="module-unavailable">Em breve</span>
       )}
     </article>
   );

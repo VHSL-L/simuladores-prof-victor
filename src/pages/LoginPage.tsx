@@ -59,21 +59,16 @@ export function LoginPage() {
 
   return <>
     <PageMetadata title="Entrar" description="Acesse os simuladores com seu e-mail de aluno da UNC, sem senha." />
-    <section className="container login-layout">
+    <section className="container login-page">
       <div className="login-intro">
         <p className="eyebrow">Área do aluno</p>
-        <h1>Seu próximo treino começa aqui.</h1>
-        <p className="lead">Use seu e-mail da UNC para acessar os simuladores. Sem criar ou lembrar uma senha.</p>
-        <ol className="login-steps">
-          <li><strong>Informe seu e-mail</strong><span>Use o endereço terminado em @aluno.unc.br.</span></li>
-          <li><strong>Confira sua caixa de entrada</strong><span>Você receberá um código de 6 dígitos.</span></li>
-          <li><strong>Entre e comece a praticar</strong><span>O acesso é gratuito para alunos da UNC.</span></li>
-        </ol>
+        <h1>Acesso aos simuladores</h1>
+        <p className="lead">Entre com seu e-mail institucional para iniciar a prática.</p>
       </div>
+      <div className="login-layout">
       <div className="login-card">
-        <p className="eyebrow">Acesso UNC</p>
-        <h2>{step === 'email' ? 'Bem-vindo de volta.' : 'Confira seu e-mail.'}</h2>
-        <p>{step === 'email' ? 'Receba um código para entrar com segurança.' : <>Enviamos um código para <strong>{email.trim().toLowerCase()}</strong>. Ele vale por 10 minutos; use sempre o mais recente.</>}</p>
+        <div className="login-card-heading"><h2>{step === 'email' ? 'Identificação' : 'Confirme seu acesso'}</h2><span>{step === 'email' ? '01' : '02'} / 02</span></div>
+        <p>{step === 'email' ? 'Enviaremos um código de 6 dígitos para seu e-mail. Não é necessário criar uma senha.' : <>Enviamos um código para <strong>{email.trim().toLowerCase()}</strong>. Ele vale por 10 minutos; use sempre o mais recente.</>}</p>
         {available === false && <p className="auth-message" role="status">O acesso por e-mail está em preparação ou temporariamente indisponível. Tente novamente mais tarde.</p>}
         <form onSubmit={onSubmit} aria-busy={busy}>
           {step === 'email' ? <>
@@ -98,7 +93,20 @@ export function LoginPage() {
           </div>}
         </form>
         <p className="login-privacy">Usamos seu e-mail para verificar seu acesso. Em um computador compartilhado, saia ao terminar. <a href="/privacidade">Saiba mais</a>.</p>
-        <div className="login-external"><strong>Não é aluno da UNC?</strong><p>O acesso para outros públicos ainda não está disponível. Novidades serão divulgadas aqui e no <a href="https://www.instagram.com/victorhugosantana/" target="_blank" rel="noopener noreferrer">Instagram do professor</a>.</p></div>
+      </div>
+      <aside className="login-sidebar" aria-label="Informações sobre os simuladores">
+        <div className="practice-index">
+          <p className="eyebrow">Biblioteca de prática</p>
+          <h2>Conteúdos disponíveis</h2>
+          <ul>
+            <li><span aria-hidden="true">01</span>Ventilação Mecânica</li>
+            <li><span aria-hidden="true">02</span>Choque</li>
+            <li><span aria-hidden="true">03</span>RCP</li>
+          </ul>
+          <p className="practice-author">Prof. Victor Hugo Sant&apos;Ana<br /><span>Medicina intensiva e ensino médico</span></p>
+        </div>
+        <div className="login-external"><h3>Acesso institucional</h3><p>Gratuito para alunos com e-mail <strong>@aluno.unc.br</strong>.</p><p>O acesso para outros públicos ainda não está disponível. Acompanhe as novidades no <a href="https://www.instagram.com/victorhugosantana/" target="_blank" rel="noopener noreferrer">Instagram do professor</a>.</p></div>
+      </aside>
       </div>
     </section>
   </>;

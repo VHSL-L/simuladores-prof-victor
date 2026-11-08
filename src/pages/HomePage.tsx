@@ -11,18 +11,19 @@ export function HomePage() {
       <section className="hero">
         <div className="container hero-grid">
           <div>
-            <p className="eyebrow">Ensino médico interativo</p>
-            <h1>Treine decisões clínicas, passo a passo.</h1>
+            <p className="eyebrow">Medicina intensiva · Ensino e prática</p>
+            <h1>Simulação clínica.</h1>
             <p className="hero-copy">
-              Ferramentas independentes para praticar raciocínio, sequência de
-              atendimento e tomada de decisão em situações críticas.
+              Um espaço para estudar condutas, testar decisões e discutir o
+              atendimento ao paciente crítico.
             </p>
-            <a className="button primary" href="/rcp">Começar pelo RCP</a>
+            <a className="text-link" href="#simuladores-title">Explorar os simuladores <span aria-hidden="true">↓</span></a>
           </div>
-          <aside className="hero-note" aria-label="Características da plataforma">
-            <p>Treino autoguiado</p>
-            <p>Feedback imediato</p>
-            <p>Funciona no celular</p>
+          <aside className="hero-note" aria-label="Sobre o professor">
+            <p className="eyebrow">Do professor</p>
+            <h2>Victor Hugo Sant&apos;Ana</h2>
+            <p>Médico intensivista e professor de Medicina.</p>
+            <a className="text-link" href="/sobre">Conheça o projeto <span aria-hidden="true">↗</span></a>
           </aside>
         </div>
       </section>
@@ -30,10 +31,10 @@ export function HomePage() {
       <section className="section container" aria-labelledby="simuladores-title">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Simuladores</p>
-            <h2 id="simuladores-title">Escolha uma área para treinar</h2>
+            <p className="eyebrow">Biblioteca de prática</p>
+            <h2 id="simuladores-title">Simuladores</h2>
           </div>
-          <p>Novos módulos serão incorporados sem alterar os simuladores já validados.</p>
+          <p>Escolha um tema para começar.<br />Acesso gratuito para alunos da UNC.</p>
         </div>
         <div className="simulator-grid">
           <SimulatorCard
