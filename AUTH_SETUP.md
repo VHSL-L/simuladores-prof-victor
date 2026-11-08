@@ -9,7 +9,10 @@ A versão em `feature/unc-email-access` usa Google Identity Services, Cloudflare
 - Vínculo de produção `AUTH_DB` salvo no Pages e configuração de falhas `Fail closed` confirmada. Valem na próxima publicação.
 - Projeto Google `simuladores-prof-victor` e cliente Web criados; nome público “Simuladores do Prof. Victor” e contato de suporte autorizado pelo titular. Nenhum plano pago ou compra de domínio contratado.
 - `GOOGLE_CLIENT_ID` salvo em produção como texto público. Identificador: `46205128024-qcm69oadhdfpfus07mjbu3s3mr19asbs.apps.googleusercontent.com`. O segredo do cliente não é usado nem armazenado pela aplicação.
-- Pendente: concluir status de publicação Google, ambiente de preview separado, teste institucional real e publicação do site.
+- Google Auth Platform confirmado como **Em produção**, somente identificação básica, sem escopos de Gmail/Drive.
+- D1 separado `simuladores-auth-preview` criado, ID `7e3b1dcf-0dff-4e5f-8fdf-2027d47f032f`, com as duas migrações. `AUTH_DB` e `GOOGLE_CLIENT_ID` salvos no ambiente Preview; `Fail closed` conferido.
+- Primeiro build da branch publicado com sucesso na Cloudflare. Alias: `https://feature-unc-email-access.simuladores-prof-victor.pages.dev`. Nova publicação aplica as configurações de preview.
+- Pendente: teste institucional real, proteção das versões antigas e publicação do site em produção.
 
 ## Fluxo e limites
 
