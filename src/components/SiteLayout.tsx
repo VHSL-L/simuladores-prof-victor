@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AccountLink } from "./AccountLink";
 
 const navItems = [
   ["Início", "/"],
@@ -25,6 +26,7 @@ function NavLinks({ currentPath }: { currentPath: string }) {
           {label}
         </a>
       ))}
+      <AccountLink />
     </>
   );
 }
@@ -62,6 +64,7 @@ export function SiteLayout({ children, currentPath }: SiteLayoutProps) {
             <a href="/sobre">Sobre</a>
             <a href="/sobre#aviso-importante">Aviso importante</a>
             <a href="/sobre#referencias">Referências</a>
+            <a href="/privacidade">Privacidade no acesso</a>
           </nav>
           <p className="footer-meta">
             © {new Date().getFullYear()} Prof. Victor Hugo Sant&apos;Ana

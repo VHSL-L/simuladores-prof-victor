@@ -5,7 +5,8 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: "dist",
-    sourcemap: true,
+    sourcemap: false,
+    manifest: true,
     rolldownOptions: {
       input: {
         platform: "index.html",

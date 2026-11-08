@@ -4,6 +4,8 @@ import { HomePage } from "./pages/HomePage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { RcpPage } from "./pages/RcpPage";
 import { AboutPage } from "./pages/AboutPage";
+import { LoginPage } from "./pages/LoginPage";
+import { PrivacyPage } from "./pages/PrivacyPage";
 
 const normalizePath = (path: string) =>
   path !== "/" ? path.replace(/\/+$/, "") : path;
@@ -13,6 +15,12 @@ export default function App() {
 
   let page;
   switch (path) {
+    case "/entrar":
+      page = <LoginPage />;
+      break;
+    case "/privacidade":
+      page = <PrivacyPage />;
+      break;
     case "/":
       page = <HomePage />;
       break;

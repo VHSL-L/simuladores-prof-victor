@@ -1,6 +1,6 @@
 # Simuladores do Prof. Victor Hugo Sant'Ana
 
-Plataforma web estática para reunir simuladores clínicos voltados ao ensino, treinamento e raciocínio em situações críticas.
+Plataforma web para reunir simuladores clínicos voltados ao ensino, treinamento e raciocínio em situações críticas, com acesso institucional por código enviado por e-mail.
 
 ## Primeira versão
 
@@ -13,7 +13,7 @@ Plataforma web estática para reunir simuladores clínicos voltados ao ensino, t
 - React 19
 - TypeScript
 - Vite
-- Aplicação estática, sem backend, banco de dados, autenticação ou API de IA
+- Interface estática e Cloudflare Pages Worker para autenticação, D1 e envio por Resend; sem API de IA
 - Compatível com GitHub e Cloudflare Pages
 
 ## Instalação
@@ -48,6 +48,8 @@ O teste executa o build, verifica preservação do código clínico, regras de e
 
 ## Publicação no Cloudflare Pages
 
+**Antes de publicar esta versão:** seguir [AUTH_SETUP.md](AUTH_SETUP.md) para configurar o banco, o remetente verificado e os segredos, testar o e-mail real em preview e proteger versões antigas. Sem essa configuração o controle de acesso permanece fechado. Não publicar a funcionalidade incompleta no site usado pelos alunos.
+
 O projeto já está conectado ao repositório `VHSL-L/simuladores-prof-victor`; pushes em `main` acionam a publicação em https://simuladores-prof-victor.pages.dev. Para configurar outra instalação:
 
 1. Envie este diretório para um repositório no GitHub.
@@ -69,6 +71,10 @@ O acesso direto às rotas usa o [fallback SPA nativo do Cloudflare Pages](https:
 - `/choque`
 - `/rcp`
 - `/sobre`
+- `/entrar`
+- `/privacidade`
+
+Início, Sobre, entrada e privacidade são públicos. Os três simuladores e seus arquivos diretos exigem uma sessão institucional válida. `npm run dev` é somente uma prévia visual, sem proteção de servidor; para testar autenticação, usar o Worker conforme `AUTH_SETUP.md`.
 
 ## Como adicionar um simulador
 
@@ -87,6 +93,6 @@ Não altere silenciosamente textos, respostas, doses, ritmos, fluxos ou feedback
 
 ## Segurança e privacidade
 
-- Não há credenciais, secrets ou chaves de API neste projeto.
+- Credenciais de envio e segredo de autenticação são configurados somente na hospedagem, nunca no Git ou no código enviado ao navegador.
 - Não insira dados pessoais ou informações identificáveis de pacientes.
 - As ferramentas são exclusivamente educacionais e não substituem julgamento profissional, protocolos institucionais ou diretrizes atualizadas.
