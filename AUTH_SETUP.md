@@ -14,7 +14,8 @@ A versão publicada em `main` usa Google Identity Services, Cloudflare Pages e D
 - Prévia publicada e validada no alias `https://feature-unc-email-access.simuladores-prof-victor.pages.dev`. Após o teste, previews foram restringidos à conta Cloudflare; alunos devem usar o endereço principal.
 - Teste institucional real confirmado pelo titular: entrou com conta de aluno, abriu um simulador e saiu normalmente. As rotas públicas e a proteção dos links diretos dos três módulos também foram verificadas na prévia hospedada.
 - Política Cloudflare Access ativada para previews (`7916ab22-819b-464b-a8a1-b05097d7d7a5`). Os quatro deployments públicos antigos (`6fbacf0e`, `5c6a5842`, `665b1cb5`, `01abea42`) e o alias de teste agora redirecionam para autenticação Cloudflare, sem servir os arquivos diretamente. O endereço principal continua com o login Google dos alunos.
-- Migração `0003_professor.sql` aplicada e conferida no D1 de produção antes da publicação do painel; campos de função/versão, tabela de auditoria e índices presentes.
+- Migração `0003_professor.sql` aplicada e conferida nos D1 de produção e preview antes da publicação do painel; campos de função/versão, tabela de auditoria e índices presentes.
+- Painel publicado em `https://simuladores-prof-victor.pages.dev/professor`, commit `fc72a97`, deploy de produção `529b05e7-76ed-4ad2-b1b1-79e22337a97d` aprovado. Entrada do professor e privacidade respondem normalmente; APIs administrativas rejeitam sessão ausente, simuladores continuam protegidos. Entrada real do titular confirmada com a conta autorizada; painel autenticado observado no endereço principal. Lista inicial vazia em produção, sem cadastros fictícios ou alteração de alunos reais.
 - Validação automatizada: build e 30 testes aprovados, incluindo assinatura, domínio, expiração, replay, origem, bloqueio, sessão e preservação dos simuladores.
 
 ## Fluxo e limites
