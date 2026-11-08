@@ -1,19 +1,20 @@
 # Acesso institucional UNC pelo Google
 
-A versão em `feature/unc-email-access` usa Google Identity Services, Cloudflare Pages e D1. Não precisa comprar domínio nem contratar envio de e-mail. Publicar somente depois de configurar a identidade Google, as migrações e testar uma conta institucional real em preview. A proteção permanece fechada se a configuração estiver incompleta.
+A versão publicada em `main` usa Google Identity Services, Cloudflare Pages e D1. Não precisa comprar domínio nem contratar envio de e-mail. Em novas instalações, configurar a identidade Google, as migrações e validar uma conta institucional antes de publicar. A proteção permanece fechada se a configuração estiver incompleta.
 
 ## Estado verificado em 08/11/2026
 
-- Produção ainda é a versão anterior, com a biografia. Esta implementação não foi publicada.
+- Login Google publicado em produção: `https://simuladores-prof-victor.pages.dev/entrar`. Build confirmado na Cloudflare; páginas públicas, disponibilidade da autenticação e proteção dos links diretos dos três simuladores verificadas no endereço principal.
 - D1 de produção `simuladores-auth`, ID `245dc00a-18a1-4ee1-8409-5e336944140c`, com as migrações `0001_auth.sql` e `0002_google.sql` aplicadas; tabela de desafios e índices Google conferidos no console.
-- Vínculo de produção `AUTH_DB` salvo no Pages e configuração de falhas `Fail closed` confirmada. Valem na próxima publicação.
+- Vínculo de produção `AUTH_DB` salvo no Pages e configuração de falhas `Fail closed` confirmada. Aplicados à publicação principal.
 - Projeto Google `simuladores-prof-victor` e cliente Web criados; nome público “Simuladores do Prof. Victor” e contato de suporte autorizado pelo titular. Nenhum plano pago ou compra de domínio contratado.
 - `GOOGLE_CLIENT_ID` salvo em produção como texto público. Identificador: `46205128024-qcm69oadhdfpfus07mjbu3s3mr19asbs.apps.googleusercontent.com`. O segredo do cliente não é usado nem armazenado pela aplicação.
 - Google Auth Platform confirmado como **Em produção**, somente identificação básica, sem escopos de Gmail/Drive.
 - D1 separado `simuladores-auth-preview` criado, ID `7e3b1dcf-0dff-4e5f-8fdf-2027d47f032f`, com as duas migrações. `AUTH_DB` e `GOOGLE_CLIENT_ID` salvos no ambiente Preview; `Fail closed` conferido.
-- Primeiro build da branch publicado com sucesso na Cloudflare. Alias: `https://feature-unc-email-access.simuladores-prof-victor.pages.dev`. Nova publicação aplica as configurações de preview.
+- Prévia publicada e validada no alias `https://feature-unc-email-access.simuladores-prof-victor.pages.dev`. Após o teste, previews foram restringidos à conta Cloudflare; alunos devem usar o endereço principal.
 - Teste institucional real confirmado pelo titular: entrou com conta de aluno, abriu um simulador e saiu normalmente. As rotas públicas e a proteção dos links diretos dos três módulos também foram verificadas na prévia hospedada.
-- Versão validada pronta para promoção a `main`; proteção dos deployments antigos será conferida na ativação.
+- Política Cloudflare Access ativada para previews (`7916ab22-819b-464b-a8a1-b05097d7d7a5`). Os quatro deployments públicos antigos (`6fbacf0e`, `5c6a5842`, `665b1cb5`, `01abea42`) e o alias de teste agora redirecionam para autenticação Cloudflare, sem servir os arquivos diretamente. O endereço principal continua com o login Google dos alunos.
+- Validação automatizada: build e 22 testes aprovados, incluindo assinatura, domínio, expiração, replay, origem, bloqueio, sessão e preservação dos simuladores.
 
 ## Fluxo e limites
 
@@ -33,7 +34,7 @@ As APIs de login exigem POST JSON e Origin exata, limitam o corpo a 8 KiB e apli
 - Públicos: `/`, `/sobre`, `/entrar`, `/privacidade`, favicon e dependências enumeradas da interface principal. Todos os outros arquivos, incluindo HTML/JS dos simuladores, exigem sessão.
 - Sem source maps publicados. Respostas são `private, no-store`.
 - Manter Pages Functions em `Fail closed` evita servir arquivos privados se a cota esgotar.
-- Configurar restrição dos previews antigos antes de anunciar proteção completa. Deployments históricos e cópias já baixadas não são reescritos pelo novo Worker.
+- Os previews e deployments antigos estão restritos pela política Cloudflare Access, conferida também por requisições sem sessão. Essa política não altera o login do endereço principal. Cópias previamente baixadas não são reescritas pelo Worker.
 
 ## Configuração externa
 
@@ -42,7 +43,7 @@ As APIs de login exigem POST JSON e Origin exata, limitam o corpo a 8 KiB e apli
 3. Aplicar `0001_auth.sql` e depois `0002_google.sql` uma única vez no D1 apropriado. Na produção existente, aplicar apenas `0002`, após verificar o esquema. A segunda migração preserva a tabela antiga `login_codes`, sem nenhum endpoint ativo de OTP.
 4. Vincular o D1 como `AUTH_DB` e definir `GOOGLE_CLIENT_ID` como texto no Pages. É um identificador público; não é senha. Criar banco separado para preview. Não são necessários `AUTH_SECRET`, `RESEND_API_KEY` ou `AUTH_EMAIL_FROM`.
 5. Compilar com `npm run build` ou `pnpm run build`. A etapa final empacota `jose` e o Worker com Vite e injeta a lista pública de assets. Nunca publicar apenas o build da interface.
-6. Em preview HTTPS, testar a entrada real com conta `@aluno.unc.br`, cada simulador, links diretos e saída; verificar bloqueio de conta pessoal. Nenhum usuário ou token de teste deve ser criado no banco de produção.
+6. Autorizar o responsável pelo teste na política Cloudflare Access do preview. Em preview HTTPS, testar a entrada real com conta `@aluno.unc.br`, cada simulador, links diretos e saída; verificar bloqueio de conta pessoal. Nenhum usuário ou token de teste deve ser criado no banco de produção.
 7. Publicar em `main` somente após validação. Manter a origem de preview controlada; novas origens exigem cadastro no Google. Configurações Google podem demorar a propagar.
 
 ## Desenvolvimento e verificação

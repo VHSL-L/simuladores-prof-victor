@@ -48,7 +48,7 @@ O teste executa o build, verifica preservação do código clínico, regras de e
 
 ## Publicação no Cloudflare Pages
 
-**Antes de publicar esta versão:** seguir [AUTH_SETUP.md](AUTH_SETUP.md) para configurar o banco e o cliente Google, testar uma conta institucional real em preview e proteger versões antigas. Sem essa configuração o controle de acesso permanece fechado. Não publicar a funcionalidade incompleta no site usado pelos alunos.
+**Login institucional publicado:** alunos entram pelo Google em https://simuladores-prof-victor.pages.dev/entrar. A configuração e a validação estão registradas em [AUTH_SETUP.md](AUTH_SETUP.md). Novas instalações precisam configurar o banco e o cliente Google antes de publicar. Os endereços antigos de preview estão restritos à conta Cloudflare.
 
 O projeto já está conectado ao repositório `VHSL-L/simuladores-prof-victor`; pushes em `main` acionam a publicação em https://simuladores-prof-victor.pages.dev. Para configurar outra instalação:
 
