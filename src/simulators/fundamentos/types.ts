@@ -21,7 +21,7 @@ export function choice(id: string, title: string, texts: string[], correct: numb
 export function isCorrect(question: Question, value: string) {
   if (!question.numeric) return value === question.answer;
   if (!/^\s*-?\d+(?:[.,]\d+)?\s*$/.test(value)) return false;
-  return Math.abs(Number(value.trim().replace(',', '.')) - question.numeric.value) <= question.numeric.tolerance + Number.EPSILON;
+  return Math.abs(Number(value.trim().replace(',', '.')) - question.numeric.value) <= question.numeric.tolerance + 1e-9;
 }
 export function anionGap(gas: Gas) { return gas.na - gas.cl - gas.hco3; }
 export function correctedGap(gas: Gas) { return anionGap(gas) + 2.5 * (4 - gas.albumin); }

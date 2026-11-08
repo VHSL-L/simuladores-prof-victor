@@ -36,6 +36,8 @@ test('gasometrias fictícias são internamente consistentes e os cálculos detec
  const mixed=cases.find(c=>c.id==='mixed');const expected=winter(mixed.gas.hco3);
  assert.equal(mixed.gas.ph,7.4);assert.equal(expected.low,24);assert.equal(expected.high,28);assert.ok(mixed.gas.co2<expected.low);
  assert.equal(isCorrect({numeric:{value:30.5,tolerance:0.1}},'30,5'),true);
+ assert.equal(isCorrect({numeric:{value:30.5,tolerance:0.1}},'30,6'),true);
+ assert.equal(isCorrect({numeric:{value:30.5,tolerance:0.1}},'30,61'),false);
  for(const invalid of ['',' ','30abc','30,5.0','Infinity','NaN','3e1'])assert.equal(isCorrect({numeric:{value:30,tolerance:0.1}},invalid),false);
 });
 test('BLS preserva distinção entre pulso presente, perda de pulso e comando do DEA',()=>{
