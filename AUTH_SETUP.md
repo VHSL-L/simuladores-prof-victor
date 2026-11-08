@@ -2,6 +2,16 @@
 
 Implementação preparada em `feature/unc-email-access`. Não publicar na produção antes de configurar e testar o envio real: esta versão protege os simuladores por padrão, mesmo se faltarem credenciais.
 
+## Estado externo verificado em 08/11/2026
+
+- Banco de produção `simuladores-auth` criado no plano gratuito da conta Cloudflare existente. ID: `245dc00a-18a1-4ee1-8409-5e336944140c`.
+- As quatro tabelas (`users`, `login_codes`, `sessions`, `auth_limits`) e os índices da migração foram criados; a listagem das quatro tabelas foi conferida no console.
+- Vínculo de produção `AUTH_DB` salvo no projeto `simuladores-prof-victor`; passa a valer na próxima publicação.
+- Configuração de produção alterada de `Fail open` para `Fail closed` e confirmada no painel.
+- Nenhuma versão nova publicada; não foram criados segredos ou enviados e-mails reais.
+- Pendente: domínio/remetente, conta e chave do serviço de envio, `AUTH_SECRET`, banco separado e configurações de preview, proteção dos deployments antigos e teste completo de entrega antes de publicar.
+- `simuladoresdovictor.com` foi cotado no painel por US$ 11,17/ano, renovação indicada no mesmo valor, antes de impostos. Não comprado. O checkout tem renovação automática marcada por padrão e não tem dados de titular cadastrados; aguardar escolha do usuário.
+
 ## Arquitetura
 
 - Cloudflare Pages advanced mode: `dist/_worker.js` intercepta **todas** as requisições. `dist/_routes.json` não tem exclusões.
