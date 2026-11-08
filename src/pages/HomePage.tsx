@@ -58,6 +58,10 @@ export function HomePage() {
             href="/rcp"
             available
           />
+          <SimulatorCard index="04" title="BLS · suporte básico de vida" href="/bls" available description="Três casos guiados: reconhecer a parada, iniciar RCP, usar o DEA e ventilar o adulto com pulso." />
+          <SimulatorCard index="05" title="Gasometria arterial" href="/gasometria" available description="Sete casos para interpretar o equilíbrio ácido-base, calcular ânion gap e conferir a compensação." />
+          <SimulatorCard index="06" title="ECG na emergência" href="/ecg" available description="Cinco casos com traçados esquemáticos: ritmos importantes, instabilidade e abordagem inicial no pronto atendimento." />
+          <SimulatorCard index="07" title="Distúrbios eletrolíticos" href="/eletrolitos" available description="Cinco casos sobre sódio, potássio e magnésio, com foco em interpretação e reconhecimento de urgências." />
         </div>
       </section>
 

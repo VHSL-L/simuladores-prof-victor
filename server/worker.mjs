@@ -28,7 +28,7 @@ export function normalizeEmail(input) {
   return email;
 }
 export function safeNext(input) {
-  return ['/rcp', '/choque', '/ventilacao-mecanica', '/professor'].includes(input) ? input : '/';
+  return ['/rcp', '/choque', '/ventilacao-mecanica', '/bls', '/gasometria', '/ecg', '/eletrolitos', '/professor'].includes(input) ? input : '/';
 }
 const hex = (bytes) => Array.from(new Uint8Array(bytes), b => b.toString(16).padStart(2, '0')).join('');
 const randomToken = () => hex(crypto.getRandomValues(new Uint8Array(32)));

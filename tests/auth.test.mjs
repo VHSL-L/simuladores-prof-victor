@@ -326,3 +326,22 @@ test('sessão administrativa expirada ou professor bloqueado perde acesso ao pai
   db.sql.prepare('UPDATE sessions SET expires_at=0').run();
   assert.equal((await request('/api/professor/overview', undefined, {Cookie})).status, 401);
 });
+
+
+test('novos módulos e seus arquivos clínicos exigem sessão e preservam o destino após login', async t => {
+  const {request,login}=setup(t); const Cookie=await login();
+  for(const slug of ['bls','gasometria','ecg','eletrolitos']){
+    assert.equal(safeNext('/'+slug),'/'+slug);
+    const blocked=await request('/'+slug);assert.equal(blocked.status,303);
+    assert.equal(blocked.headers.get('Location'),'/entrar?next=%2F'+slug);
+    assert.equal((await request('/'+slug,undefined,{Cookie})).status,200);
+    const html='/simulators/'+slug+'/index.html';
+    assert.equal((await request(html)).status,303);
+    assert.equal((await request(html,undefined,{Cookie})).status,200);
+    const entry=[...readFileSync('dist'+html,'utf8').matchAll(/<script[^>]*src="([^"]+)"/g)]
+      .map(match=>match[1]).find(file=>file.startsWith('/assets/main-'));
+    assert.ok(entry, 'O módulo deve possuir um arquivo clínico próprio');
+    assert.equal((await request(entry)).status,303,entry);
+    assert.equal((await request(entry,undefined,{Cookie})).status,200,entry);
+  }
+});

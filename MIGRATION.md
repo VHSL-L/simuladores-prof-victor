@@ -1,5 +1,15 @@
 # Registro de migração
 
+## Ampliação da biblioteca — 08/11/2026
+
+- Quatro módulos novos, solicitados pelo autor: BLS (3 casos), gasometria (7), ECG na emergência (5) e eletrólitos (5).
+- Conteúdo próprio em `src/simulators/fundamentos`; fontes e limites documentados no README dessa pasta e na interface de cada módulo. Não são cópias de cursos nem certificações.
+- Entradas HTML independentes, com interface compartilhada, respostas comentadas, revisão e reinício por caso. Respostas permanecem apenas na memória da aba, sem API, banco ou histórico do aluno.
+- ECG usa traçados SVG esquemáticos de seis segundos, gerados localmente. Gasometria confere valores, tolerância numérica, coerência de Henderson–Hasselbalch e compensação.
+- As quatro novas rotas e seus HTML/JS exigem a mesma sessão dos módulos anteriores. Nenhuma migração de banco ou mudança de permissões Google.
+- Os três simuladores originais permanecem preservados pelos testes de hashes. O catálogo passa a sete módulos.
+- Validação: build e 35 testes aprovados; navegação, respostas corretas/incorretas, conclusão, reinício, retenção entre casos e entradas decimais conferidos na prévia local. Layout de celular ajustado e conferido a 390 px, sem alargamento da página.
+
 ## RCP
 
 - Fonte: cópia do simulador `megacode-prof-victor-sequencial.html` disponível no contexto local.

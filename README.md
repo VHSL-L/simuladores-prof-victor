@@ -2,11 +2,17 @@
 
 Plataforma web para reunir simuladores clínicos voltados ao ensino, treinamento e raciocínio em situações críticas, com acesso institucional pela conta Google da UNC.
 
-## Primeira versão
+## Biblioteca
 
 - RCP: disponível e importado como cópia isolada do simulador original.
 - Ventilação Mecânica: VentilaLab original, três casos e treino livre em VCV/PCV, sem as aulas.
 - Choque: Sala de Choque original, cinco casos com decisões e desfechos.
+- BLS adulto: três casos sobre reconhecimento, RCP, DEA e ventilação de resgate.
+- Gasometria arterial: sete casos de interpretação ácido-base, ânion gap e compensação.
+- ECG na emergência: cinco casos de ritmos, estabilidade e abordagem inicial, com traçados esquemáticos.
+- Distúrbios eletrolíticos: cinco casos sobre sódio, potássio e magnésio.
+
+Os quatro módulos novos são roteiros de prática com respostas comentadas e referências, sem registro de notas ou envio de respostas. Escopo e fontes em [fundamentos/README.md](src/simulators/fundamentos/README.md).
 
 ## Tecnologia
 
@@ -44,7 +50,7 @@ Os arquivos finais são gravados em `dist/`.
 npm test
 ```
 
-O teste executa o build, verifica preservação do código clínico, regras de epinefrina, métricas/curvas VCV e PCV e assets da Cloudflare Pages. Com a prévia local ativa, execute também `node tests/routes-smoke.mjs`. A página `/tests/mobile-preview.html` existe apenas no desenvolvimento para inspeção em frames de 390 × 844; não é publicada.
+O teste executa o build, verifica preservação do código clínico original, regras de epinefrina, métricas/curvas VCV e PCV, consistência dos novos casos e cálculos, assets da Cloudflare Pages e controle de acesso. Com a prévia local ativa, execute também `node tests/routes-smoke.mjs`. A página `/tests/mobile-preview.html` existe apenas no desenvolvimento para inspeção em frames de 390 × 844; não é publicada.
 
 ## Publicação no Cloudflare Pages
 
@@ -70,13 +76,17 @@ O acesso direto às rotas usa o [fallback SPA nativo do Cloudflare Pages](https:
 - `/ventilacao-mecanica`
 - `/choque`
 - `/rcp`
+- `/bls`
+- `/gasometria`
+- `/ecg`
+- `/eletrolitos`
 - `/sobre`
 - `/entrar`
 - `/privacidade`
 - `/professor/entrar`
 - `/professor`
 
-Início, Sobre, entradas e privacidade são públicos. O painel do professor usa a conta Google autorizada do responsável, mostra cadastros/últimas entradas e permite bloquear ou reativar alunos; não registra notas ou desempenho. Os três simuladores e seus arquivos diretos exigem uma sessão institucional válida. `npm run dev` é somente uma prévia visual, sem proteção de servidor; para testar autenticação, usar o Worker conforme `AUTH_SETUP.md`.
+Início, Sobre, entradas e privacidade são públicos. O painel do professor usa a conta Google autorizada do responsável, mostra cadastros/últimas entradas e permite bloquear ou reativar alunos; não registra notas ou desempenho. Os sete simuladores e seus arquivos diretos exigem uma sessão válida de aluno UNC ou do professor autorizado. `npm run dev` é somente uma prévia visual, sem proteção de servidor; para testar autenticação, usar o Worker conforme `AUTH_SETUP.md`.
 
 ## Como adicionar um simulador
 
@@ -87,7 +97,7 @@ Início, Sobre, entradas e privacidade são públicos. O painel do professor usa
 5. Atualize o card na página inicial somente depois de validar o módulo.
 6. Preserve o original e registre qualquer adaptação técnica no README do módulo.
 
-Os módulos React usam entradas HTML próprias, registradas em `vite.config.ts`, para manter CSS e estados isolados. Consulte [MIGRATION.md](MIGRATION.md) para fontes, diferenças técnicas e dependências. A única requisição externa de apresentação é Google Fonts no módulo Choque; toda a lógica dos três simuladores roda localmente.
+Os módulos React usam entradas HTML próprias, registradas em `vite.config.ts`, para manter CSS e estados isolados. Consulte [MIGRATION.md](MIGRATION.md) para fontes, diferenças técnicas e dependências. A única requisição externa de apresentação é Google Fonts no módulo Choque; toda a lógica clínica roda localmente.
 
 ## Conteúdo clínico
 

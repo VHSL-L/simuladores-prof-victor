@@ -10,6 +10,10 @@ export default defineConfig({
     rolldownOptions: {
       input: {
         platform: "index.html",
+        bls: "simulators/bls/index.html",
+        gasometria: "simulators/gasometria/index.html",
+        ecg: "simulators/ecg/index.html",
+        eletrolitos: "simulators/eletrolitos/index.html",
         choque: "simulators/choque/index.html",
         ventilacao: "simulators/ventilacao-mecanica/index.html",
       },

@@ -41,7 +41,7 @@ export function LoginPage({ mode = 'student' }: { mode?: 'student' | 'professor'
   const button = useRef<HTMLDivElement>(null);
   const verifying = useRef(false);
   const requested = new URLSearchParams(window.location.search).get('next');
-  const next = professor ? '/professor' : requested && ['/rcp', '/choque', '/ventilacao-mecanica'].includes(requested) ? requested : '/';
+  const next = professor ? '/professor' : requested && ['/rcp', '/choque', '/ventilacao-mecanica', '/bls', '/gasometria', '/ecg', '/eletrolitos'].includes(requested) ? requested : '/';
 
   useEffect(() => {
     let active = true; let expiry: number | undefined;
@@ -111,6 +111,10 @@ export function LoginPage({ mode = 'student' }: { mode?: 'student' | 'professor'
             <li><span aria-hidden="true">01</span>Ventilação Mecânica</li>
             <li><span aria-hidden="true">02</span>Choque</li>
             <li><span aria-hidden="true">03</span>RCP</li>
+            <li><span aria-hidden="true">04</span>BLS</li>
+            <li><span aria-hidden="true">05</span>Gasometria arterial</li>
+            <li><span aria-hidden="true">06</span>ECG na emergência</li>
+            <li><span aria-hidden="true">07</span>Distúrbios eletrolíticos</li>
           </ul>
           <p className="practice-author">Prof. Victor Hugo Sant&apos;Ana<br /><span>Medicina intensiva e ensino médico</span></p>
         </div>

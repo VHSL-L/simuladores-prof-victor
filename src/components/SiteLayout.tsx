@@ -3,9 +3,7 @@ import { AccountLink } from "./AccountLink";
 
 const navItems = [
   ["Início", "/"],
-  ["Ventilação Mecânica", "/ventilacao-mecanica"],
-  ["Choque", "/choque"],
-  ["RCP", "/rcp"],
+  ["Simuladores", "/#simuladores-title"],
   ["Sobre", "/sobre"],
 ] as const;
 

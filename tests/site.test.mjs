@@ -4,6 +4,10 @@ import { test } from "node:test";
 
 const requiredFiles = [
   "dist/index.html",
+  "dist/simulators/bls/index.html",
+  "dist/simulators/gasometria/index.html",
+  "dist/simulators/ecg/index.html",
+  "dist/simulators/eletrolitos/index.html",
   "dist/_redirects",
   "dist/_headers",
   "dist/favicon.svg",

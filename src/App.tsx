@@ -31,6 +31,18 @@ export default function App() {
     case "/":
       page = <HomePage />;
       break;
+    case "/bls":
+      page = <ClinicalSimulatorPage slug="bls" title="BLS · suporte básico de vida" frameTitle="BLS adulto — prática guiada" description="Reconhecimento da parada, RCP e DEA em três casos guiados para estudantes da saúde." />;
+      break;
+    case "/gasometria":
+      page = <ClinicalSimulatorPage slug="gasometria" title="Gasometria arterial" frameTitle="Gasometria arterial — casos guiados" description="Sete casos para interpretar pH, ânion gap e compensação, com cálculos comentados." />;
+      break;
+    case "/ecg":
+      page = <ClinicalSimulatorPage slug="ecg" title="ECG na emergência" frameTitle="ECG na emergência — ritmos e abordagem inicial" description="Cinco casos de ritmos no pronto atendimento: reconhecimento, estabilidade e abordagem inicial." />;
+      break;
+    case "/eletrolitos":
+      page = <ClinicalSimulatorPage slug="eletrolitos" title="Distúrbios eletrolíticos" frameTitle="Distúrbios eletrolíticos — casos guiados" description="Cinco casos para integrar sódio, potássio e magnésio aos sinais clínicos e às prioridades do atendimento." />;
+      break;
     case "/rcp":
       page = <RcpPage />;
       break;

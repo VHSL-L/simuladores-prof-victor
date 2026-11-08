@@ -32,6 +32,7 @@ As APIs de login exigem POST JSON e Origin exata, limitam o corpo a 8 KiB e apli
 
 ## Proteção dos simuladores
 
+- Biblioteca ampliada para sete módulos. `/bls`, `/gasometria`, `/ecg` e `/eletrolitos`, seus HTMLs e o bundle clínico compartilhado exigem sessão. O retorno após login mantém a rota escolhida. A ampliação não acrescenta permissões, migrações, registro de respostas ou envio de mensagens.
 - `dist/_worker.js` intercepta todas as requisições; `dist/_routes.json` não possui exclusões.
 - Públicos: `/`, `/sobre`, `/entrar`, `/privacidade`, `/professor/entrar`, favicon e dependências enumeradas da interface principal. Todos os outros arquivos, incluindo HTML/JS dos simuladores, exigem sessão.
 - Sem source maps publicados. Respostas são `private, no-store`.

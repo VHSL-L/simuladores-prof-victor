@@ -77,8 +77,9 @@ export function AboutPage() {
         <section id="referencias" className="references">
           <h2>Referências</h2>
           <p>
-            As referências clínicas específicas serão mantidas junto de cada
-            simulador e revisadas conforme a evolução dos módulos.
+            BLS, Gasometria arterial, ECG na emergência e Distúrbios eletrolíticos
+            apresentam suas fontes na seção “Referências e limites” de cada módulo.
+            Os casos são fictícios e voltados à discussão educacional.
           </p>
           <p>
             Os traçados de FV, TV e assistolia utilizados no simulador de RCP
