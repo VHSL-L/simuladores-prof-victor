@@ -1,3 +1,4 @@
+import { peaCase, asystoleCase } from './reassessment-cases';
 import { choice, type LearningModule } from './types';
 export const ecg: LearningModule = {
  slug:'ecg',title:'ECG na emergência',subtitle:'Reconheça o ritmo e olhe para o paciente.',
@@ -21,6 +22,7 @@ export const ecg: LearningModule = {
  {id:'vf',title:'Colapso diante do monitor',focus:'Ritmo de parada',context:'Um adulto torna-se inconsciente. Não respira normalmente e o profissional não identifica pulso em até 10 segundos. O monitor está conectado e o desfibrilador chega ao leito.',observations:[{label:'Pulso',value:'Não identificado'},{label:'Respiração',value:'Agônica'},{label:'Consciência',value:'Ausente'}],trace:{kind:'vf',rate:0,description:'Atividade elétrica caótica, sem complexos QRS organizados.'},questions:[
  choice('vf-pattern','Qual leitura combina com o quadro?', ['Fibrilação ventricular em paciente em parada','Fibrilação atrial estável','Bradicardia com pulso'],0,'Atividade desorganizada sem QRS definidos, no contexto de ausência de pulso, é compatível com FV.'),
  choice('vf-plan','Qual ação inicial?', ['Esperar sincronização com uma onda R.', 'RCP, chamada de ajuda e desfibrilação não sincronizada assim que disponível, com retomada imediata de RCP.', 'Checar exames antes de iniciar compressões.'],1,'FV é um ritmo chocável. A desfibrilação não é sincronizada; compressões e uso rápido do desfibrilador são prioridades.')],takeaway:'O monitor complementa a avaliação. Sem pulso, a abordagem é de parada; no DEA, siga os comandos.'},
+  peaCase, asystoleCase,
  ],
- references:[{title:'AHA 2025 · Suporte avançado no adulto',url:'https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support'},{title:'ACC/AHA/ACCP/HRS 2023 · Fibrilação atrial',url:'https://www.jacc.org/doi/10.1016/j.jacc.2023.08.017'},{title:'AHA 2025 · Algoritmos de ressuscitação',url:'https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/algorithms'}],
+ references:[{title:'Resuscitation Council UK 2025 · Suporte avançado e ritmos não chocáveis',url:'https://www.resus.org.uk/professional-library/2025-resuscitation-guidelines/adult-advanced-life-support-guidelines'},{title:'AHA 2025 · Suporte avançado no adulto',url:'https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support'},{title:'ACC/AHA/ACCP/HRS 2023 · Fibrilação atrial',url:'https://www.jacc.org/doi/10.1016/j.jacc.2023.08.017'},{title:'AHA 2025 · Algoritmos de ressuscitação',url:'https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/algorithms'}],
 };

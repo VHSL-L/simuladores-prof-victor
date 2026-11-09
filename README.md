@@ -7,12 +7,12 @@ Plataforma web para reunir simuladores clínicos voltados ao ensino, treinamento
 - RCP: disponível e importado como cópia isolada do simulador original.
 - Ventilação Mecânica: VentilaLab original, três casos e treino livre em VCV/PCV, sem as aulas.
 - Choque: Sala de Choque original, cinco casos com decisões e desfechos.
-- BLS adulto: três casos sobre reconhecimento, RCP, DEA e ventilação de resgate.
-- Gasometria arterial: sete casos de interpretação ácido-base, ânion gap e compensação.
-- ECG na emergência: cinco casos de ritmos, estabilidade e abordagem inicial, com traçados esquemáticos.
-- Distúrbios eletrolíticos: cinco casos sobre sódio, potássio e magnésio.
+- BLS adulto: quatro casos sobre reconhecimento, RCP, DEA e ventilação de resgate.
+- Gasometria arterial: oito casos de interpretação ácido-base, ânion gap e compensação.
+- ECG na emergência: sete casos de ritmos, estabilidade e abordagem inicial, com traçados esquemáticos.
+- Distúrbios eletrolíticos: seis casos sobre sódio, potássio e magnésio.
 
-Os quatro módulos novos são roteiros de prática com respostas comentadas e referências, sem registro de notas ou envio de respostas. Escopo e fontes em [fundamentos/README.md](src/simulators/fundamentos/README.md).
+Os quatro módulos novos reúnem 25 casos, incluindo reavaliações com atualização de sinais, exames e traçados. São roteiros de prática com respostas comentadas e referências, sem registro de notas ou envio de respostas. Escopo e fontes em [fundamentos/README.md](src/simulators/fundamentos/README.md).
 
 ## Tecnologia
 

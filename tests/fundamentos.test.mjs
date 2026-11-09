@@ -14,10 +14,10 @@ function load(relative){
 }
 const root='src/simulators/fundamentos/';
 const modules=['bls','gasometria','ecg','eletrolitos'].map(slug=>load(root+slug+'.ts')[slug]);
-const {isCorrect,anionGap,correctedGap,winter,calculatedPh}=load(root+'types.ts');
+const {isCorrect,anionGap,correctedGap,winter,calculatedPh,caseStateAt}=load(root+'types.ts');
 const {beatTimes,waveValue,wavePath}=load(root+'ecg-wave.ts');
-test('20 casos completos, respostas válidas e referências em todos os novos módulos',()=>{
- assert.equal(modules.reduce((n,m)=>n+m.cases.length,0),20);
+test('25 casos completos, respostas válidas e referências em todos os novos módulos',()=>{
+ assert.equal(modules.reduce((n,m)=>n+m.cases.length,0),25);
  for(const m of modules){assert.ok(m.references.length>=2);assert.equal(new Set(m.cases.map(c=>c.id)).size,m.cases.length);
   for(const c of m.cases){assert.ok(c.questions.length>=2);assert.ok(c.context&&c.takeaway);assert.equal(new Set(c.questions.map(q=>q.id)).size,c.questions.length);
    for(const q of c.questions){assert.ok(q.explanation);assert.ok(Boolean(q.numeric)!==Boolean(q.options));
@@ -29,7 +29,7 @@ test('20 casos completos, respostas válidas e referências em todos os novos m�
 });
 test('gasometrias fictícias são internamente consistentes e os cálculos detectam o distúrbio misto',()=>{
  const cases=modules[1].cases;
- for(const c of cases)assert.ok(Math.abs(c.gas.ph-calculatedPh(c.gas.co2,c.gas.hco3))<0.015,c.id);
+ for(const c of cases)for(const g of [c.gas,...c.questions.map(q=>q.update?.gas).filter(Boolean)])assert.ok(Math.abs(g.ph-calculatedPh(g.co2,g.hco3))<0.015,c.id);
  assert.equal(anionGap(cases.find(c=>c.id==='ketosis').gas),24);
  assert.equal(anionGap(cases.find(c=>c.id==='diarrhea').gas),12);
  assert.equal(correctedGap(cases.find(c=>c.id==='albumin').gas),17);
@@ -56,10 +56,42 @@ test('ECG oferece traçados finitos e ritmos regulares ou irregulares coerentes'
   for(let t=0;t<6;t+=0.003){const y=waveValue(trace,t,beats);assert.ok(Number.isFinite(y));assert.ok(Math.abs(y)<2.1);}
   const intervals=beats.slice(1).map((t,i)=>t-beats[i]);
   if(trace.kind==='af')assert.ok(Math.max(...intervals)-Math.min(...intervals)>0.15);
-  else if(trace.kind!=='vf')assert.ok(intervals.every(v=>Math.abs(v-60/trace.rate)<1e-9));
+  else if(trace.kind!=='vf'&&trace.kind!=='asystole')assert.ok(intervals.every(v=>Math.abs(v-60/trace.rate)<1e-9));
   else assert.equal(beats.length,0);
  }
  const wide=modules[2].cases.find(c=>c.id==='wide');const vf=modules[2].cases.find(c=>c.id==='vf');
  assert.match(wide.questions.find(q=>q.id==='wide-plan').options.find(o=>o.id===wide.questions.find(q=>q.id==='wide-plan').answer).text,/sincronizada/);
  assert.match(vf.questions.find(q=>q.id==='vf-plan').options.find(o=>o.id===vf.questions.find(q=>q.id==='vf-plan').answer).text,/não sincronizada/);
+});
+
+test('reavaliação não antecipa dados futuros e restaura o momento correto ao voltar',()=>{
+ const respiratory=modules[0].cases.find(c=>c.id==='respiratory');
+ assert.match(caseStateAt(respiratory,1).observations.find(o=>o.label==='Pulso').value,/Presente/);
+ assert.match(caseStateAt(respiratory,2).observations.find(o=>o.label==='Pulso').value,/Não identificado/);
+ assert.equal(caseStateAt(respiratory,0).latest,undefined);
+ const serial=modules[1].cases.find(c=>c.id==='serial-gas');
+ assert.equal(caseStateAt(serial,2).gas.co2,50);
+ assert.equal(caseStateAt(serial,3).gas.co2,32);
+ assert.equal(caseStateAt(serial,4).gas.co2,32);
+ assert.equal(caseStateAt(serial,0).gas.co2,50);
+ assert.equal(serial.gas.co2,50);
+ const pea=modules[2].cases.find(c=>c.id==='pea');
+ assert.equal(caseStateAt(pea,1).trace.rate,60);
+ assert.equal(caseStateAt(pea,2).trace.rate,68);
+ assert.match(caseStateAt(pea,2).observations.find(o=>o.label==='Pulso').value,/Presente/);
+ assert.match(caseStateAt(pea,1).observations.find(o=>o.label==='Pulso').value,/Não identificado/);
+ const sodium=modules[3].cases.find(c=>c.id==='sodium-trend');
+ assert.equal(caseStateAt(sodium,0).observations.find(o=>o.label==='Na⁺ atual'),undefined);
+ assert.equal(caseStateAt(sodium,1).observations.find(o=>o.label==='Na⁺ atual').value,'125 mmol/L');
+ assert.equal(sodium.questions.find(q=>q.id==='sodium-delta').numeric.value,125-112);
+});
+test('ritmos não chocáveis não são confundidos com indicação de desfibrilação',()=>{
+ const expected=q=>q.options.find(o=>o.id===q.answer).text;
+ for(const id of ['pea','asystole']){
+  const c=modules[2].cases.find(c=>c.id===id);
+  assert.match(expected(c.questions[1]),/não (?:é ritmo )?chocável/);
+ }
+ const trace=modules[2].cases.find(c=>c.id==='asystole').trace;
+ assert.equal(beatTimes(trace).length,0);
+ for(let t=0;t<6;t+=.05)assert.equal(waveValue(trace,t),0);
 });

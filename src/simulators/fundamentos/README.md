@@ -6,10 +6,10 @@ Quatro módulos originais, adicionados a pedido do responsável pelo site em 08/
 
 | Módulo | Casos | Abrangência |
 | --- | ---: | --- |
-| BLS adulto | 3 | Reconhecimento, compressões/ventilações, DEA e apneia com pulso; profissionais de saúde, sem pediatria ou situações especiais. |
-| Gasometria | 7 | Quatro distúrbios primários, compensação, distúrbio misto e correção do ânion gap pela albumina; não avalia oxigenação. |
-| ECG na emergência | 5 | Ritmos estreitos/largos, regularidade, pulso, perfusão e conduta inicial; sem laudo de 12 derivações, diagnóstico de infarto ou prescrição. |
-| Eletrólitos | 5 | Hipercalemia, hipocalemia/hipomagnesemia, hiponatremia sintomática, amostra hemolisada e hipernatremia; sem doses ou velocidades de infusão. |
+| BLS adulto | 4 | Reconhecimento, compressões/ventilações, DEA, apneia com pulso e revezamento/qualidade; profissionais de saúde, sem pediatria ou situações especiais. |
+| Gasometria | 8 | Quatro distúrbios primários, compensação, distúrbio misto e correção do ânion gap pela albumina e comparação de amostras; não avalia oxigenação. |
+| ECG na emergência | 7 | Ritmos estreitos/largos, regularidade, pulso, perfusão e conduta inicial, incluindo AESP e assistolia; sem laudo de 12 derivações, diagnóstico de infarto ou prescrição. |
+| Eletrólitos | 6 | Hipercalemia, hipocalemia/hipomagnesemia, hiponatremia sintomática, amostra hemolisada hipernatremia e sobrecorreção do sódio; sem doses ou velocidades de infusão. |
 
 O roteiro avança pela abordagem recomendada depois que o aluno lê a explicação, inclusive quando erra. Não simula uma evolução fisiológica contínua. A revisão final mostra a resposta escolhida e a esperada, permitindo refazer o caso. Não há pontuação enviada ao professor.
 
@@ -25,16 +25,26 @@ O roteiro avança pela abordagem recomendada depois que o aluno lê a explicaç�
 
 ## Referências
 
-Consultadas em 08/11/2026; links completos também nos arquivos de conteúdo:
+Consultadas em 08 e 09/11/2026; links completos também nos arquivos de conteúdo:
 
 - AHA 2025: suporte básico e avançado no adulto; Resuscitation Council UK 2025: RCP/DEA.
 - ACC/AHA/ACCP/HRS 2023: fibrilação atrial.
 - Merck Manual Professional: regulação e distúrbios ácido-base; painel francês de especialistas, Annals of Intensive Care 2019: acidose metabólica e ânion gap corrigido.
 - UK Kidney Association 2023: hipercalemia; AAFP 2023: distúrbios do potássio.
-- Society for Endocrinology: emergência por hiponatremia sintomática; Korean Journal of Internal Medicine 2023: hipernatremia em adultos.
+- Society for Endocrinology 2022 e CJASN 2024: hiponatremia sintomática, reavaliação e sobrecorreção; Korean Journal of Internal Medicine 2023: hipernatremia em adultos.
 
 ## Verificação
 
-`tests/fundamentos.test.mjs` verifica os 20 casos, alternativas/respostas, cálculos, consistência da gasometria, distinções críticas de BLS e ECG, regularidade dos traçados e valores finitos. Os testes de autenticação incluem rotas, links HTML diretos e bundle clínico. Testes de preservação continuam cobrindo os três módulos anteriores.
+`tests/fundamentos.test.mjs` verifica os 25 casos, alternativas/respostas, cálculos, consistência da gasometria, distinções críticas de BLS e ECG, regularidade dos traçados e valores finitos. Os testes de autenticação incluem rotas, links HTML diretos e bundle clínico. Testes de preservação continuam cobrindo os três módulos anteriores.
 
 Validação de interface em desktop e celular inclui resposta errada comentada, avanço, conclusão, revisão, reinício, troca de caso sem perder a tentativa e vírgula decimal. Isso verifica funcionamento e coerência programável; não equivale a validação clínica independente.
+
+## Reavaliações — 09/11/2026
+
+- Cinco casos adicionais em `reassessment-cases.ts`: qualidade/revezamento na RCP, gasometrias seriadas, AESP com retorno de circulação, confirmação de assistolia e variação acumulada do sódio. Total por módulo: 4/8/7/6.
+- `Question.update` descreve um novo momento didático. `caseStateAt` aplica apenas atualizações já alcançadas pelo cursor; voltar restaura a situação anterior. As mudanças seguem o roteiro comentado, mesmo após erro, sem modelo fisiológico nem previsão de resposta individual.
+- A apresentação original é identificada como inicial. O painel atual muda com a etapa; os dados iniciais ficam disponíveis em uma seção recolhida. A revisão final preserva os dados usados em cada pergunta.
+- O caso preexistente de apneia com pulso agora atualiza também o painel quando ocorre perda do pulso; perguntas, gabarito e condutas permanecem os mesmos.
+- No celular, seletor completo com anterior/próximo substitui a lista horizontal; o estado da tentativa é preservado na troca. Foco acompanha o título do novo caso ou a reavaliação, para que o aluno perceba a mudança.
+- Traçados locais adicionais: atividade organizada com ondas P e linha isoelétrica. Pulso nunca é inferido do desenho.
+- Testes incluem ausência de antecipação de dados, restauração ao voltar, dados originais imutáveis, nova gasometria consistente e distinção entre ritmos chocáveis/não chocáveis.

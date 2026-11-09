@@ -1,14 +1,20 @@
 export type Option = { id: string; text: string };
+export type Observation = { label: string; value: string };
+export type CaseUpdate = {
+  label: string; context: string;
+  observations?: Observation[]; gas?: Gas; trace?: Trace;
+};
 export type Question = {
   id: string; title: string; prompt?: string; explanation: string;
+  update?: CaseUpdate;
   options?: Option[]; answer?: string;
   numeric?: { value: number; tolerance: number; unit: string; hint: string };
 };
-export type Trace = { kind: 'narrow' | 'af' | 'wide' | 'brady' | 'vf'; rate: number; description: string };
+export type Trace = { kind: 'narrow' | 'af' | 'wide' | 'brady' | 'sinus' | 'vf' | 'asystole'; rate: number; description: string };
 export type Gas = { ph: number; co2: number; hco3: number; na: number; cl: number; albumin: number };
 export type Case = {
   id: string; title: string; focus: string; context: string;
-  observations: { label: string; value: string }[];
+  observations: Observation[];
   questions: Question[]; takeaway: string; trace?: Trace; gas?: Gas;
 };
 export type LearningModule = {
@@ -27,3 +33,19 @@ export function anionGap(gas: Gas) { return gas.na - gas.cl - gas.hco3; }
 export function correctedGap(gas: Gas) { return anionGap(gas) + 2.5 * (4 - gas.albumin); }
 export function winter(hco3: number) { return { center: 1.5 * hco3 + 8, low: 1.5 * hco3 + 6, high: 1.5 * hco3 + 10 }; }
 export function calculatedPh(co2: number, hco3: number) { return 6.1 + Math.log10(hco3 / (0.03 * co2)); }
+
+// Only reveal updates reached by the current step, including when reviewing backwards.
+export function caseStateAt(item: Case, cursor: number) {
+  let state = { observations: item.observations, gas: item.gas, trace: item.trace };
+  let latest: CaseUpdate | undefined;
+  for (const question of item.questions.slice(0, Math.max(0, cursor + 1))) {
+    if (!question.update) continue;
+    latest = question.update;
+    state = {
+      observations: latest.observations ?? state.observations,
+      gas: latest.gas ?? state.gas,
+      trace: latest.trace ?? state.trace,
+    };
+  }
+  return { ...state, latest };
+}

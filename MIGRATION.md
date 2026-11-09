@@ -1,5 +1,12 @@
 # Registro de migração
 
+## Reavaliação dos casos — 09/11/2026
+
+- Biblioteca de fundamentos ampliada para 25 casos (BLS 4, gasometria 8, ECG na emergência 7, eletrólitos 6).
+- Dados de sinais, laboratório e traçados acompanham etapas explícitas de reavaliação; voltar, trocar de caso e reiniciar preservam a coerência do momento apresentado. A revisão final mostra os dados utilizados na pergunta.
+- Novo seletor para celular, com anterior/próximo e identificação do caso atual.
+- Novos casos, referências e limites registrados no README de fundamentos. Simuladores originais, autenticação, banco e permissões preservados.
+
 ## Ampliação da biblioteca — 08/11/2026
 
 - Quatro módulos novos, solicitados pelo autor: BLS (3 casos), gasometria (7), ECG na emergência (5) e eletrólitos (5).

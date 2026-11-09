@@ -1,3 +1,4 @@
+import { qualityCase } from './reassessment-cases';
 import { choice, type LearningModule } from './types';
 export const bls: LearningModule = {
   slug: 'bls', title: 'BLS · suporte básico de vida', subtitle: 'Reconhecer, pedir ajuda e agir nos primeiros minutos.',
@@ -22,8 +23,10 @@ export const bls: LearningModule = {
       questions:[
         choice('rescue','Qual suporte inicial?', ['Ventilar 1 vez a cada 6 segundos, observando elevação do tórax.', 'Fazer compressões apesar do pulso claramente presente.', 'Aguardar exames antes de ventilar.'],0,'Com pulso definido e ausência de respiração adequada, forneça ventilação de resgate: 10/min no adulto. Abra a via aérea e confira a eficácia; a bolsa-máscara requer técnica e treinamento.'),
         choice('reassess','Como acompanhar?', ['Manter ventilações sem reavaliar até a alta.', 'Checar pulso aproximadamente a cada 2 minutos e observar a ventilação.', 'Retirar a ventilação depois da primeira expansão torácica.'],1,'Reavalie pulso e resposta. Se houver suspeita de opioide, a naloxona pode ser considerada pela equipe conforme protocolo, sem atrasar suporte ventilatório.'),
-        choice('loss','O quadro mudou. Qual próximo passo?', ['Manter apenas ventilações.', 'Esperar confirmação por ultrassom.', 'Iniciar RCP e usar o DEA assim que disponível.'],2,'A perda do pulso muda o caminho para parada cardíaca: compressões, ventilações e DEA.', 'Na reavaliação, não há pulso definido em até 10 segundos e o adulto segue sem respirar normalmente.'),
+        {...choice('loss','O quadro mudou. Qual próximo passo?', ['Manter apenas ventilações.', 'Esperar confirmação por ultrassom.', 'Iniciar RCP e usar o DEA assim que disponível.'],2,'A perda do pulso muda o caminho para parada cardíaca: compressões, ventilações e DEA.', 'Na reavaliação, não há pulso definido em até 10 segundos e o adulto segue sem respirar normalmente.'),
+          update:{label:'Reavaliação · perda do pulso',context:'O adulto continua apneico. Na checagem, não há pulso central definido em até 10 segundos.',observations:[{label:'Respiração',value:'Ausente'},{label:'Pulso',value:'Não identificado em até 10 s'},{label:'DEA',value:'Solicitado'}]}},
       ], takeaway:'Pulso presente e pulso ausente levam a caminhos diferentes. A reavaliação permite perceber a mudança.' },
+    qualityCase,
   ],
   references:[{title:'AHA 2025 · Suporte básico de vida no adulto',url:'https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support'},{title:'Resuscitation Council UK 2025 · Qualidade da RCP e DEA',url:'https://www.resus.org.uk/professional-library/2025-resuscitation-guidelines/adult-basic-life-support-guidelines'}],
 };
