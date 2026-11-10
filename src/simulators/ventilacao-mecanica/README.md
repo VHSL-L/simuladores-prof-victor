@@ -26,3 +26,7 @@ As estimativas de SpO₂/PaCO₂ e metas de avaliação dos casos permanecem heu
 - [Hamilton T1, manual oficial v3.0](https://www.hamilton-medical.com/dam/jcr%3Ae394540c-e871-48c8-9ca1-3adb567f3ab5/HAMILTON-T1_ops-manual_v3.0.x_en_usa_10103179.03.pdf). Referência de apresentação de pressão, fluxo e volume; não se reproduz a interface nem os algoritmos proprietários.
 
 `tests/ventilation.test.mjs` verifica conservação de volume por integração, equação do movimento, continuidade do volume entre fases/ciclos, resposta à subida no PCV, expiração exponencial, retenção com frequência elevada, limites de tempo e ausência de corte pelas escalas.
+
+## Próxima etapa solicitada
+
+Ajustes avançados de VM foram guardados para depois, a pedido do autor em 10/11/2026. Registro no [planejamento do projeto](../../../ROADMAP.md); a seleção dos ajustes será definida nessa etapa futura.
