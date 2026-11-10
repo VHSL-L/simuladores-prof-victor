@@ -48,3 +48,16 @@ Validação de interface em desktop e celular inclui resposta errada comentada, 
 - No celular, seletor completo com anterior/próximo substitui a lista horizontal; o estado da tentativa é preservado na troca. Foco acompanha o título do novo caso ou a reavaliação, para que o aluno perceba a mudança.
 - Traçados locais adicionais: atividade organizada com ondas P e linha isoelétrica. Pulso nunca é inferido do desenho.
 - Testes incluem ausência de antecipação de dados, restauração ao voltar, dados originais imutáveis, nova gasometria consistente e distinção entre ritmos chocáveis/não chocáveis.
+
+## Revisão das alternativas — 09/11/2026
+
+- Revisão solicitada pelo autor: 66 questões de múltipla escolha com quatro alternativas distintas e 12 questões de resposta numérica, nos 25 casos.
+- Opções incorretas passam a representar confusões clínicas plausíveis: estabilidade versus frequência, sincronização versus desfibrilação, presença de pulso versus aspecto do monitor, compensação versus distúrbio misto e mecanismo versus urgência dos distúrbios eletrolíticos.
+- Linguagem e extensão equilibradas; posições corretas distribuídas entre A, B, C e D no conteúdo. A ordem é estável durante a tentativa. As explicações abordam os principais erros de interpretação.
+- Na gasometria, o exercício inicial interpreta o efeito de PaCO₂ e HCO₃⁻ sobre o pH. Em acidose metabólica, a classificação do componente metabólico vem depois do cálculo do AG, evitando perguntar por um único processo principal em um distúrbio misto.
+- A deterioração do caso de amostra hemolisada ganhou sinais concretos (hipotensão e alargamento de QRS), visíveis no painel da etapa, para sustentar uma única prioridade.
+- A assinatura TypeScript de `choice` exige quatro textos; os testes verificam quatro opções distintas e um gabarito válido em todas as questões. A verificação estrutural não substitui a revisão clínica do autor.
+
+## Próxima melhoria solicitada
+
+Feedback específico para a alternativa escolhida: explicar por que ela está incorreta e por que o gabarito é adequado ao caso. Solicitado pelo autor para uma próxima rodada, ainda não implementado; a versão atual mantém a explicação geral de cada questão.

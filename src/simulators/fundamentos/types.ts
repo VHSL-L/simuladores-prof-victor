@@ -21,7 +21,7 @@ export type LearningModule = {
   slug: string; title: string; subtitle: string; scope: string; objectives: string[];
   cases: Case[]; references: { title: string; url: string }[];
 };
-export function choice(id: string, title: string, texts: string[], correct: number, explanation: string, prompt?: string): Question {
+export function choice(id: string, title: string, texts: [string, string, string, string], correct: number, explanation: string, prompt?: string): Question {
   return { id, title, prompt, options: texts.map((text, i) => ({ id: `${id}-${i}`, text })), answer: `${id}-${correct}`, explanation };
 }
 export function isCorrect(question: Question, value: string) {

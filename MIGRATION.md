@@ -1,5 +1,12 @@
 # Registro de migração
 
+## Revisão de questões — 09/11/2026
+
+- A pedido do autor, alternativas dos quatro módulos de fundamentos revisadas: 66 questões com quatro opções e 12 cálculos numéricos.
+- Substituídas opções obviamente incorretas por erros de raciocínio plausíveis, com linguagem paralela, extensão equilibrada e explicações ajustadas.
+- Refinados os enunciados de gasometria para distinguir o componente metabólico em casos mistos; o caso de amostra hemolisada explicita os dados da deterioração.
+- Nenhum caso removido, nenhuma mudança nos três simuladores originais, na autenticação ou nos dados de alunos.
+
 ## Reavaliação dos casos — 09/11/2026
 
 - Biblioteca de fundamentos ampliada para 25 casos (BLS 4, gasometria 8, ECG na emergência 7, eletrólitos 6).

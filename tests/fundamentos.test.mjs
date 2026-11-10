@@ -22,7 +22,7 @@ test('25 casos completos, respostas válidas e referências em todos os novos m�
   for(const c of m.cases){assert.ok(c.questions.length>=2);assert.ok(c.context&&c.takeaway);assert.equal(new Set(c.questions.map(q=>q.id)).size,c.questions.length);
    for(const q of c.questions){assert.ok(q.explanation);assert.ok(Boolean(q.numeric)!==Boolean(q.options));
     if(q.numeric){assert.ok(Number.isFinite(q.numeric.value));assert.ok(isCorrect(q,String(q.numeric.value)));assert.equal(isCorrect(q,''),false);}
-    else {assert.equal(q.options.filter(o=>o.id===q.answer).length,1);for(const o of q.options)assert.equal(isCorrect(q,o.id),o.id===q.answer);}
+    else {assert.equal(q.options.length,4,`${m.slug}/${c.id}/${q.id}: quatro alternativas`);assert.equal(new Set(q.options.map(o=>o.text)).size,4,`${c.id}/${q.id}: textos distintos`);assert.equal(q.options.filter(o=>o.id===q.answer).length,1);for(const o of q.options)assert.equal(isCorrect(q,o.id),o.id===q.answer);}
    }
   }
  }
