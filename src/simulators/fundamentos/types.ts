@@ -1,4 +1,5 @@
-export type Option = { id: string; text: string };
+export type Option = { id: string; text: string; whyIncorrect: string | null };
+type ChoiceInput = [text: string, whyIncorrect: string | null];
 export type Observation = { label: string; value: string };
 export type CaseUpdate = {
   label: string; context: string;
@@ -21,8 +22,8 @@ export type LearningModule = {
   slug: string; title: string; subtitle: string; scope: string; objectives: string[];
   cases: Case[]; references: { title: string; url: string }[];
 };
-export function choice(id: string, title: string, texts: [string, string, string, string], correct: number, explanation: string, prompt?: string): Question {
-  return { id, title, prompt, options: texts.map((text, i) => ({ id: `${id}-${i}`, text })), answer: `${id}-${correct}`, explanation };
+export function choice(id: string, title: string, choices: [ChoiceInput, ChoiceInput, ChoiceInput, ChoiceInput], correct: number, explanation: string, prompt?: string): Question {
+  return { id, title, prompt, options: choices.map(([text, whyIncorrect], i) => ({ id: `${id}-${i}`, text, whyIncorrect: i === correct ? null : whyIncorrect })), answer: `${id}-${correct}`, explanation };
 }
 export function isCorrect(question: Question, value: string) {
   if (!question.numeric) return value === question.answer;

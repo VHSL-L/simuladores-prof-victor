@@ -1,21 +1,30 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import path from 'node:path';
 import vm from 'node:vm';
 import { test } from 'node:test';
 import ts from 'typescript';
 const cache=new Map();
+const requirePackage=createRequire(import.meta.url);
 function load(relative){
  const file=path.resolve(relative); if(cache.has(file))return cache.get(file);
  const module={exports:{}};cache.set(file,module.exports);
- const source=ts.transpileModule(readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
- vm.runInNewContext(source,{module,exports:module.exports,require:name=>load(path.resolve(path.dirname(file),name+'.ts'))},{filename:file});
+ const source=ts.transpileModule(readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+ vm.runInNewContext(source,{module,exports:module.exports,require:name=>{
+  if(!name.startsWith('.'))return requirePackage(name);
+  const local=path.resolve(path.dirname(file),name);
+  return load(local+(existsSync(local+'.ts')?'.ts':'.tsx'));
+ }},{filename:file});
  return module.exports;
 }
 const root='src/simulators/fundamentos/';
 const modules=['bls','gasometria','ecg','eletrolitos'].map(slug=>load(root+slug+'.ts')[slug]);
 const {isCorrect,anionGap,correctedGap,winter,calculatedPh,caseStateAt}=load(root+'types.ts');
 const {beatTimes,waveValue,wavePath}=load(root+'ecg-wave.ts');
+const {AnswerFeedback}=load(root+'answer-feedback.tsx');
 test('25 casos completos, respostas válidas e referências em todos os novos módulos',()=>{
  assert.equal(modules.reduce((n,m)=>n+m.cases.length,0),25);
  for(const m of modules){assert.ok(m.references.length>=2);assert.equal(new Set(m.cases.map(c=>c.id)).size,m.cases.length);
@@ -26,6 +35,57 @@ test('25 casos completos, respostas válidas e referências em todos os novos m�
    }
   }
  }
+});
+test('cada uma das 198 alternativas incorretas tem comentário específico e o gabarito fica sem comentário de erro',()=>{
+ let count=0;
+ for(const m of modules)for(const c of m.cases)for(const q of c.questions){
+  if(!q.options)continue;
+  const wrong=q.options.filter(o=>o.id!==q.answer);
+  assert.equal(q.options.find(o=>o.id===q.answer).whyIncorrect,null);
+  assert.equal(new Set(wrong.map(o=>o.whyIncorrect)).size,3,`${c.id}/${q.id}: explicações distintas`);
+  for(const o of wrong){
+   assert.ok(o.whyIncorrect?.length>40,`${c.id}/${q.id}/${o.id}`);
+   assert.notEqual(o.whyIncorrect,q.explanation);
+   count++;
+  }
+ }
+ assert.equal(count,198);
+});
+test('gabarito comentado só revela o comentário da opção confirmada e também funciona na revisão',()=>{
+ const render=(q,answer)=>renderToStaticMarkup(React.createElement(AnswerFeedback,{question:q,answer}));
+ const text=value=>renderToStaticMarkup(React.createElement(React.Fragment,null,value));
+ for(const m of modules)for(const c of m.cases)for(const q of c.questions){
+  assert.equal(render(q,undefined),'');
+  if(!q.options)continue;
+  for(const selected of q.options){
+   const html=render(q,selected.id);
+   assert.ok(html.includes(text(q.explanation)));
+   assert.ok(html.includes(text(q.options.find(o=>o.id===q.answer).text)));
+   if(selected.id===q.answer){assert.ok(!html.includes('Por que sua resposta não se aplica'));}
+   else {
+    assert.ok(html.includes('Por que sua resposta não se aplica'));
+    assert.ok(html.includes(text(selected.whyIncorrect)));
+   }
+   for(const other of q.options.filter(o=>o.id!==selected.id&&o.whyIncorrect))assert.ok(!html.includes(`<p>${text(other.whyIncorrect)}</p>`),`${c.id}/${q.id}: comentário de outra opção não aparece`);
+  }
+ }
+ const numeric=modules[1].cases[0].questions.find(q=>q.id==='gap');
+ assert.match(render(numeric,'22'),/Seu resultado:.*22.*Resultado esperado:.*24/s);
+ assert.ok(render(numeric,'22').includes(text(numeric.explanation)));
+ assert.ok(!render(numeric,'24,0').includes('Seu resultado:'));
+});
+test('comentários da gasometria acompanham os dados e a direção do erro escolhido',()=>{
+ const gas=modules[1].cases;
+ const ketosis=gas.find(c=>c.id==='ketosis');
+ const ph=ketosis.questions.find(q=>q.id==='ph');
+ assert.match(ph.options[0].whyIncorrect,/PaCO₂ de 26.*elevação/);
+ assert.match(ph.options[1].whyIncorrect,/HCO₃⁻ de 12.*queda/);
+ const mixed=gas.find(c=>c.id==='mixed').questions.find(q=>q.id==='compensation');
+ assert.match(mixed.options[0].whyIncorrect,/20.*abaixo.*24–28/);
+ const albumin=gas.find(c=>c.id==='albumin').questions.find(q=>q.id==='compensation');
+ assert.match(albumin.options[3].whyIncorrect,/AG corrigido de 17/);
+ const pea=modules[2].cases.find(c=>c.id==='pea').questions.find(q=>q.id==='pea-change');
+ assert.match(pea.options[0].whyIncorrect,/retorno da circulação/);
 });
 test('gasometrias fictícias são internamente consistentes e os cálculos detectam o distúrbio misto',()=>{
  const cases=modules[1].cases;

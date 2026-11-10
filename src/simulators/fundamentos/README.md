@@ -25,7 +25,7 @@ O roteiro avança pela abordagem recomendada depois que o aluno lê a explicaç�
 
 ## Referências
 
-Consultadas em 08 e 09/11/2026; links completos também nos arquivos de conteúdo:
+Consultadas de 08 a 10/11/2026; links completos também nos arquivos de conteúdo:
 
 - AHA 2025: suporte básico e avançado no adulto; Resuscitation Council UK 2025: RCP/DEA.
 - ACC/AHA/ACCP/HRS 2023: fibrilação atrial.
@@ -58,6 +58,12 @@ Validação de interface em desktop e celular inclui resposta errada comentada, 
 - A deterioração do caso de amostra hemolisada ganhou sinais concretos (hipotensão e alargamento de QRS), visíveis no painel da etapa, para sustentar uma única prioridade.
 - A assinatura TypeScript de `choice` exige quatro textos; os testes verificam quatro opções distintas e um gabarito válido em todas as questões. A verificação estrutural não substitui a revisão clínica do autor.
 
-## Próxima melhoria solicitada
+## Gabarito por alternativa — 10/11/2026
 
-Feedback específico para a alternativa escolhida: explicar por que ela está incorreta e por que o gabarito é adequado ao caso. Solicitado pelo autor para uma próxima rodada, ainda não implementado; a versão atual mantém a explicação geral de cada questão.
+- Melhoria solicitada pelo autor: cada uma das 198 opções incorretas das 66 questões tem uma justificativa própria, ligada ao texto da alternativa. As quatro opções e os gabaritos da revisão anterior foram preservados.
+- `choice` recebe quatro pares `[texto, motivo do erro]`. A correta usa `null` e sua justificativa vem de `Question.explanation`; os testes exigem três comentários distintos e completos por questão.
+- `answer-feedback.tsx` apresenta “Por que sua resposta não se aplica” e “Por que a resposta correta se aplica” depois de confirmar a resposta. O mesmo componente aparece na revisão final. Acertos não exibem comentário de erro; as 12 questões numéricas mostram o resultado e a conta existente.
+- Explicações de gasometria usam os valores da amostra, o AG e a faixa de Winter; etapas seriadas preservam o contexto do momento respondido. Não são calculadas a partir de dados de pacientes.
+- Os testes verificam todos os comentários, a correspondência com cada opção, ausência de revelação sem resposta confirmada, apresentação de acertos/erros e valores dos exemplos de gasometria. Conferência no navegador cobre avanço, retorno, revisão, reinício e leitura no celular.
+- Referências dos módulos foram mantidas e consultadas novamente. O conteúdo foi redigido para os casos fictícios; a verificação técnica e a conferência de referências não equivalem a validação clínica independente.
+- Sem persistência de notas, telemetria, envio de mensagens, mudanças de acesso ou novos serviços.

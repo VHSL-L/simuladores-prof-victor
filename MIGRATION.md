@@ -1,5 +1,11 @@
 # Registro de migração
 
+## Gabarito por alternativa — 10/11/2026
+
+- As 66 questões de múltipla escolha passaram a comentar especificamente a alternativa incorreta confirmada e a justificar a correta, também na revisão final. São 198 comentários de erros possíveis.
+- Comentários aparecem apenas após a confirmação. Acertos recebem a explicação do gabarito; questões numéricas mantêm a demonstração do cálculo.
+- Preservados enunciados, alternativas, gabaritos, 25 casos e os três simuladores originais. Nenhuma mudança de autenticação, dados de alunos ou serviços externos.
+
 ## Revisão de questões — 09/11/2026
 
 - A pedido do autor, alternativas dos quatro módulos de fundamentos revisadas: 66 questões com quatro opções e 12 cálculos numéricos.
