@@ -214,6 +214,7 @@ function VentilatorSimulator({
   const [vcvSettings, setVcvSettings] = useState<VcvSettings>(syncedSnapshot?.vcvSettings ?? firstScenario.vcv);
   const [pcvSettings, setPcvSettings] = useState<PcvSettings>(syncedSnapshot?.pcvSettings ?? firstScenario.pcv);
   const [assessment, setAssessment] = useState<Assessment | null>(syncedSnapshot?.assessment ?? null);
+  const [screenOnly, setScreenOnly] = useState(false);
   const scenarioWork = useRef<Partial<Record<ScenarioId, ScenarioWork>>>({});
   const scenario = SCENARIOS.find((item) => item.id === scenarioId) ?? SCENARIOS[0];
   const visibleScenarios = visibleScenarioIds
@@ -447,7 +448,7 @@ function VentilatorSimulator({
     : `${(1 / metrics.ie).toFixed(1)}:1`;
 
   return (
-    <main className={`simulator-shell${locked ? " simulator-locked" : ""}`}>
+    <main className={`simulator-shell${locked ? " simulator-locked" : ""}${screenOnly ? " screen-only" : ""}`}>
       <header className="topbar">
         <div className="brand-block">
           <span className="brand-mark" aria-hidden="true">V</span>
@@ -529,27 +530,36 @@ function VentilatorSimulator({
         )}
       </section>
 
-      <section className="ventilator-screen">
+      <section className="ventilator-screen" aria-label="Tela do ventilador mecânico">
         <div className="screen-toolbar">
           <div className="patient-label">
-            <span>Paciente virtual</span>
+            <span>Adulto · Ventilação invasiva</span>
             <strong>{scenario.id === "free" ? "Adulto · Mecânica fixa" : scenario.shortLabel}</strong>
           </div>
           <div className="vent-mode-switch" role="group" aria-label="Selecionar modo ventilatório">
             <button className={mode === "VCV" ? "active" : ""} disabled={locked} onClick={() => { setMode("VCV"); setAssessment(null); }} type="button">VCV</button>
             <button className={mode === "PCV" ? "active" : ""} disabled={locked} onClick={() => { setMode("PCV"); setAssessment(null); }} type="button">PCV</button>
           </div>
-          <button className="reset-button" disabled={locked} onClick={restoreCurrentMode} type="button">
-            Restaurar
-          </button>
+          <div className="screen-actions">
+            <button className="screen-focus-button" type="button" aria-pressed={screenOnly} onClick={()=>{setScreenOnly(value=>!value);window.scrollTo({top:0,behavior:'instant'});}}>{screenOnly?'Voltar ao caso':'Ampliar painel'}</button>
+            <button className="reset-button" disabled={locked} onClick={restoreCurrentMode} type="button">Restaurar</button>
+          </div>
         </div>
+
+        <details className={`device-alarms ${alerts.some(alert=>alert.level==='danger')?'critical':alerts.length?'caution':'clear'}`}>
+          <summary><span className="alarm-indicator" aria-hidden="true">{alerts.length?'!':'✓'}</span><strong>{alerts.length ? (alerts.find(alert=>alert.level==='danger')??alerts[0]).title : 'Sem alertas didáticos'}</strong><span>{alerts.length?`${alerts.length} alerta${alerts.length>1?'s':''} · detalhes`:'Ver critérios'}</span></summary>
+          <div className="device-alarm-details" aria-live="polite">
+            {alerts.length ? alerts.map(alert=><div key={alert.title}><strong>{alert.title}</strong><p>{alert.detail}</p></div>) : <p>Os ajustes estão dentro das faixas didáticas deste caso. A avaliação clínica continua necessária.</p>}
+            <small>Alertas educacionais do modelo; não representam todos os alarmes de um equipamento real.</small>
+          </div>
+        </details>
 
         <div className="display-grid">
           <WaveformMonitor metrics={metrics} />
 
           <aside className="monitor-column" aria-label="Valores monitorizados">
             <div className="monitor-heading">
-              <span>Monitorização</span>
+              <span>Valores monitorizados</span>
               <strong>{mode}</strong>
             </div>
             <div className="monitor-grid">
@@ -577,32 +587,11 @@ function VentilatorSimulator({
           </aside>
         </div>
 
-        <div className={`alerts-panel${alerts.length === 0 ? " all-clear" : ""}`} aria-live="polite">
-          <div className="alert-summary">
-            <span className="alert-symbol">{alerts.length === 0 ? "✓" : "!"}</span>
-            <div>
-              <strong>{alerts.length === 0 ? "Parâmetros dentro da faixa didática" : `${alerts.length} alerta${alerts.length > 1 ? "s" : ""}`}</strong>
-              <small>{alerts.length === 0 ? "Continue explorando os ajustes e observe as curvas." : "Use os alertas para discutir a conduta — não substituem avaliação clínica."}</small>
-            </div>
-          </div>
-          {alerts.length > 0 && (
-            <div className="alert-list">
-              {alerts.map((alert) => (
-                <div className={`alert-card ${alert.level}`} key={alert.title}>
-                  <strong>{alert.title}</strong>
-                  <span>{alert.detail}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
       <section className="controls-deck" aria-label="Ajustes do ventilador">
         <div className="controls-heading">
           <div>
             <span>AJUSTES</span>
-            <strong>Parâmetros ventilatórios</strong>
+            <strong>Parâmetros ajustados</strong>
           </div>
           <p>{mode === "VCV" ? "VC e fluxo definem o Ti automaticamente." : "ΔP e Ti determinam o fluxo e o volume resultantes."}</p>
         </div>
@@ -629,6 +618,9 @@ function VentilatorSimulator({
         </div>
       </section>
 
+        <div className="device-status"><span>VENTILAB · SIMULAÇÃO</span><span>Adulto · Passivo · C {metrics.compliance} mL/cmH₂O · R {metrics.resistance} cmH₂O/L/s</span></div>
+      </section>
+
       <footer className="footer-note">
         <span>USO DIDÁTICO</span>
         <p>Simulação simplificada para aula. Não utilizar para decisões clínicas ou ajuste de ventiladores reais.</p>
@@ -644,7 +636,7 @@ export default function PracticeSimulator() {
       <section className="simulation-stage-banner practice-banner">
         <div><span>MODO ALUNO</span><strong>Ventilação mecânica · prática individual</strong></div>
         <p>Escolha um dos três casos clínicos ou o treino livre. Todos os controles e avaliações estão liberados.</p>
-        <span className="teacher-paced-badge">SEM LOGIN</span>
+        <span className="teacher-paced-badge">USO DIDÁTICO</span>
       </section>
       <VentilatorSimulator />
     </div>

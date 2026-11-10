@@ -14,6 +14,8 @@ Entrada: `/simulators/ventilacao-mecanica/index.html`. Rota: `/ventilacao-mecani
 - Retenção: solução periódica estabilizada; volume residual de um ciclo passa ao seguinte. Auto-PEEP estimada = volume residual / C. VCe é o volume líquido expirado; VM = VCe × FR. Alterar parâmetros recalcula imediatamente o regime estabilizado, sem simular os ciclos de transição.
 - Ajustes incompatíveis com FR: a simulação limita Ti para reservar 0,20 s de expiração, mantém os controles solicitados visíveis e avisa sobre volume/tempo efetivamente entregues. Essa é uma regra didática, não uma implementação de um ventilador comercial. A avaliação não aprova essa combinação.
 
+A tela reúne faixa superior de alertas por prioridade, gráficos à esquerda, monitorização à direita e parâmetros ajustados na faixa inferior. “Ampliar painel” oculta o contexto de aula dentro do módulo; “Voltar ao caso” restaura o contexto sem reiniciar os ajustes. As informações de pressão/volume usam cores correspondentes às curvas. Não se exibem estados fictícios de bateria, rede de gases ou desconexão.
+
 `waveform-monitor.tsx` usa relógio único, escalas numéricas adaptadas à amplitude, janelas de 6/12/24 s e congelamento simultâneo. Alterar um controle recalcula inclusive as curvas congeladas. Preferência por movimento reduzido inicia com curvas congeladas. Todas as curvas têm descrição textual e os valores permanecem disponíveis em texto.
 
 As estimativas de SpO₂/PaCO₂ e metas de avaliação dos casos permanecem heurísticas didáticas do módulo original; não constituem previsão fisiológica validada. Não usar para ajustar ventiladores reais.
