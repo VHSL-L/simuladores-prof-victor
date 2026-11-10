@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-type WaveKind = "pressure" | "flow" | "volume";
-type VentMode = "VCV" | "PCV";
+import { deriveVcvMetrics, derivePcvMetrics, type VentMode, type VcvSettings, type PcvSettings, type Mechanics } from './respiratory-model';
+import { WaveformMonitor } from './waveform-monitor';
 type ScenarioId = "free" | "hypoxemia" | "hypercapnia" | "initial";
 type Assessment = { status: "success" | "review"; title: string; details: string[] };
 
@@ -17,28 +17,6 @@ type SimulatorSnapshot = {
 
 type ScenarioWork = Omit<SimulatorSnapshot, "scenarioId">;
 
-type VcvSettings = {
-  fio2: number;
-  vt: number;
-  rr: number;
-  flow: number;
-  peep: number;
-};
-
-type PcvSettings = {
-  fio2: number;
-  pinsp: number;
-  ti: number;
-  rr: number;
-  rise: number;
-  peep: number;
-};
-
-type Mechanics = {
-  compliance: number;
-  resistance: number;
-};
-
 type ClinicalScenario = {
   id: ScenarioId;
   shortLabel: string;
@@ -51,28 +29,6 @@ type ClinicalScenario = {
   mechanics: Mechanics;
   vcv: VcvSettings;
   pcv: PcvSettings;
-};
-
-type VentMetrics = {
-  mode: VentMode;
-  fio2: number;
-  vt: number;
-  rr: number;
-  flow: number;
-  peep: number;
-  pinsp: number;
-  rise: number;
-  compliance: number;
-  resistance: number;
-  timeConstant: number;
-  ti: number;
-  cycle: number;
-  te: number;
-  ie: number;
-  minuteVent: number;
-  vte: number;
-  pplat: number;
-  ppeak: number;
 };
 
 const VCV_DEFAULTS: VcvSettings = {
@@ -169,257 +125,6 @@ const PCV_LIMITS = {
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
-
-function deriveVcvMetrics(settings: VcvSettings, mechanics: Mechanics): VentMetrics {
-  const cycle = 60 / settings.rr;
-  const tiFromFlow = settings.vt / ((settings.flow * 1000) / 60);
-  const safeTi = clamp(tiFromFlow, 0.2, 4);
-  const flow = settings.flow;
-  const te = Math.max(0.05, cycle - safeTi);
-
-  const timeConstant = Math.max(0.2, (mechanics.compliance / 1000) * mechanics.resistance);
-  const pplat = settings.peep + settings.vt / mechanics.compliance;
-  const ppeak = pplat + (flow / 60) * mechanics.resistance;
-
-  return {
-    mode: "VCV",
-    fio2: settings.fio2,
-    vt: settings.vt,
-    rr: settings.rr,
-    peep: settings.peep,
-    pinsp: ppeak - settings.peep,
-    rise: 0,
-    compliance: mechanics.compliance,
-    resistance: mechanics.resistance,
-    timeConstant,
-    ti: safeTi,
-    flow,
-    cycle,
-    te,
-    ie: te / safeTi,
-    minuteVent: (settings.vt * settings.rr) / 1000,
-    vte: settings.vt * Math.min(0.98, 1 - Math.exp(-te / timeConstant)),
-    pplat,
-    ppeak,
-  };
-}
-
-function derivePcvMetrics(settings: PcvSettings, mechanics: Mechanics): VentMetrics {
-  const cycle = 60 / settings.rr;
-  const safeTi = clamp(settings.ti, 0.3, 2);
-  const te = Math.max(0.05, cycle - safeTi);
-  const timeConstant = Math.max(0.2, (mechanics.compliance / 1000) * mechanics.resistance);
-  const inspiratoryFraction = 1 - Math.exp(-safeTi / timeConstant);
-  const vt = mechanics.compliance * settings.pinsp * inspiratoryFraction;
-  const flow = (settings.pinsp / mechanics.resistance) * 60;
-  const ppeak = settings.peep + settings.pinsp;
-  const vte = vt * Math.min(0.98, 1 - Math.exp(-te / timeConstant));
-
-  return {
-    mode: "PCV",
-    fio2: settings.fio2,
-    vt,
-    rr: settings.rr,
-    flow,
-    peep: settings.peep,
-    pinsp: settings.pinsp,
-    rise: settings.rise,
-    compliance: mechanics.compliance,
-    resistance: mechanics.resistance,
-    timeConstant,
-    ti: safeTi,
-    cycle,
-    te,
-    ie: te / safeTi,
-    minuteVent: (vte * settings.rr) / 1000,
-    vte,
-    pplat: ppeak,
-    ppeak,
-  };
-}
-
-function waveformAt(kind: WaveKind, t: number, metrics: VentMetrics) {
-  const cycleTime = metrics.cycle;
-  const local = ((t % cycleTime) + cycleTime) % cycleTime;
-  const inspiratory = local <= metrics.ti;
-
-  if (metrics.mode === "PCV") {
-    const timeConstant = metrics.timeConstant;
-    if (kind === "pressure") {
-      if (inspiratory) {
-        const riseTime = Math.max(0.04, metrics.rise);
-        const riseFraction = Math.min(1, local / riseTime);
-        const shapedRise = 1 - Math.pow(1 - riseFraction, 2);
-        return metrics.peep + metrics.pinsp * shapedRise;
-      }
-      const expiratoryTime = local - metrics.ti;
-      return metrics.peep + metrics.pinsp * Math.exp(-expiratoryTime / 0.08);
-    }
-
-    if (kind === "flow") {
-      if (inspiratory) return metrics.flow * Math.exp(-local / timeConstant);
-      const expiratoryTime = local - metrics.ti;
-      const peakExpiratoryFlow = Math.min(100, metrics.vt / 8);
-      return -peakExpiratoryFlow * Math.exp(-expiratoryTime / timeConstant);
-    }
-
-    if (inspiratory) {
-      return metrics.compliance * metrics.pinsp * (1 - Math.exp(-local / timeConstant));
-    }
-    const expiratoryTime = local - metrics.ti;
-    return metrics.vt * Math.exp(-expiratoryTime / timeConstant);
-  }
-
-  if (kind === "pressure") {
-    if (inspiratory) {
-      const progress = local / metrics.ti;
-      const resistivePressure = (metrics.flow / 60) * metrics.resistance;
-      return metrics.peep + resistivePressure + (metrics.vt / metrics.compliance) * progress;
-    }
-    const e = local - metrics.ti;
-    return metrics.peep + (metrics.pplat - metrics.peep) * Math.exp(-e / Math.max(0.08, metrics.timeConstant / 2));
-  }
-
-  if (kind === "flow") {
-    if (inspiratory) return metrics.flow;
-    const expiratoryTime = local - metrics.ti;
-    const peakExpiratoryFlow = Math.min(95, metrics.vt / 8);
-    return -peakExpiratoryFlow * Math.exp(-expiratoryTime / metrics.timeConstant);
-  }
-
-  if (inspiratory) return metrics.vt * (local / metrics.ti);
-  const expiratoryTime = local - metrics.ti;
-  return metrics.vt * Math.exp(-expiratoryTime / metrics.timeConstant);
-}
-
-function drawWaveform(
-  canvas: HTMLCanvasElement,
-  kind: WaveKind,
-  metrics: VentMetrics,
-  elapsed: number,
-) {
-  const rect = canvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  const width = Math.max(1, Math.floor(rect.width));
-  const height = Math.max(1, Math.floor(rect.height));
-
-  if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-  }
-
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, width, height);
-
-  const padding = { top: 14, right: 14, bottom: 16, left: 10 };
-  const chartW = width - padding.left - padding.right;
-  const chartH = height - padding.top - padding.bottom;
-  const timeWindow = Math.max(7.5, metrics.cycle * 2.5);
-
-  ctx.strokeStyle = "rgba(126, 165, 176, 0.13)";
-  ctx.lineWidth = 1;
-  ctx.setLineDash([2, 5]);
-  for (let i = 0; i <= 4; i += 1) {
-    const y = padding.top + (chartH * i) / 4;
-    ctx.beginPath();
-    ctx.moveTo(padding.left, y);
-    ctx.lineTo(width - padding.right, y);
-    ctx.stroke();
-  }
-  for (let i = 0; i <= 5; i += 1) {
-    const x = padding.left + (chartW * i) / 5;
-    ctx.beginPath();
-    ctx.moveTo(x, padding.top);
-    ctx.lineTo(x, height - padding.bottom);
-    ctx.stroke();
-  }
-  ctx.setLineDash([]);
-
-  let min = 0;
-  let max = Math.max(40, Math.ceil((metrics.ppeak + 5) / 10) * 10);
-  let color = "#ffd34d";
-  if (kind === "flow") {
-    min = -100;
-    max = 100;
-    color = "#55e7dc";
-  } else if (kind === "volume") {
-    min = 0;
-    max = Math.max(900, Math.ceil((metrics.vt + 100) / 100) * 100);
-    color = "#78e878";
-  }
-
-  if (kind === "flow") {
-    const zeroY = padding.top + chartH * (max / (max - min));
-    ctx.strokeStyle = "rgba(203, 225, 228, 0.22)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(padding.left, zeroY);
-    ctx.lineTo(width - padding.right, zeroY);
-    ctx.stroke();
-  }
-
-  const timeOffset = elapsed % metrics.cycle;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2.3;
-  ctx.shadowColor = color;
-  ctx.shadowBlur = 6;
-  ctx.beginPath();
-  for (let px = 0; px <= chartW; px += 2) {
-    const sampleTime = (px / chartW) * timeWindow + timeOffset;
-    const value = waveformAt(kind, sampleTime, metrics);
-    const normalized = clamp((value - min) / (max - min), 0, 1);
-    const x = padding.left + px;
-    const y = padding.top + chartH * (1 - normalized);
-    if (px === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-}
-
-function WavePanel({
-  kind,
-  title,
-  unit,
-  color,
-  metrics,
-}: {
-  kind: WaveKind;
-  title: string;
-  unit: string;
-  color: string;
-  metrics: VentMetrics;
-}) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const metricsRef = useRef(metrics);
-  metricsRef.current = metrics;
-
-  useEffect(() => {
-    let frame = 0;
-    const startedAt = performance.now();
-    const render = (now: number) => {
-      if (canvasRef.current) {
-        drawWaveform(canvasRef.current, kind, metricsRef.current, (now - startedAt) / 1000);
-      }
-      frame = requestAnimationFrame(render);
-    };
-    frame = requestAnimationFrame(render);
-    return () => cancelAnimationFrame(frame);
-  }, [kind]);
-
-  return (
-    <section className="wave-panel" aria-label={`Curva de ${title}`}>
-      <div className="wave-heading">
-        <span className="wave-dot" style={{ backgroundColor: color }} />
-        <strong>{title}</strong>
-        <span>{unit}</span>
-      </div>
-      <canvas ref={canvasRef} />
-    </section>
-  );
-}
 
 function MonitorItem({
   label,
@@ -614,6 +319,10 @@ function VentilatorSimulator({
       details.push(`${pressureOk ? "✓" : "→"} Ppico: ${metrics.ppeak.toFixed(0)} cmH₂O.`);
     }
 
+    if (metrics.timingLimited) {
+      success = false;
+      details.push("→ O tempo inspiratório solicitado não cabe no ciclo. Revise FR, fluxo/VC ou Ti.");
+    }
     setAssessment({
       status: success ? "success" : "review",
       title: success ? "Ajuste coerente para o objetivo didático" : "Revise alguns pontos do ajuste",
@@ -650,6 +359,8 @@ function VentilatorSimulator({
 
   const alerts = useMemo(() => {
     const items: { level: "warning" | "danger"; title: string; detail: string }[] = [];
+    if (metrics.timingLimited) items.push({level:"danger",title:"Ajustes de tempo incompatíveis",detail:"O Ti solicitado não cabe no ciclo. A simulação interrompe a inspiração para reservar 0,20 s de expiração; o volume entregue pode ficar abaixo do ajustado. Revise FR, fluxo/VC ou Ti."});
+    if (metrics.autoPeep >= 1) items.push({level:"warning",title:"Expiração incompleta",detail:`O fluxo ainda é ${metrics.endExpFlow.toFixed(1)} L/min antes do próximo ciclo. Auto-PEEP estimada: ${metrics.autoPeep.toFixed(1)} cmH₂O. Correlacione com a curva e o tempo expiratório.`});
     const vtMlKg = scenario.pbw ? metrics.vte / scenario.pbw : null;
     if (vtMlKg !== null ? vtMlKg > 8 : metrics.vt > 600) {
       items.push({
@@ -834,29 +545,7 @@ function VentilatorSimulator({
         </div>
 
         <div className="display-grid">
-          <div className="waves-column">
-            <WavePanel
-              kind="pressure"
-              title="Pressão × tempo"
-              unit="cmH₂O"
-              color="#ffd34d"
-              metrics={metrics}
-            />
-            <WavePanel
-              kind="flow"
-              title="Fluxo × tempo"
-              unit="L/min"
-              color="#55e7dc"
-              metrics={metrics}
-            />
-            <WavePanel
-              kind="volume"
-              title="Volume × tempo"
-              unit="mL"
-              color="#78e878"
-              metrics={metrics}
-            />
-          </div>
+          <WaveformMonitor metrics={metrics} />
 
           <aside className="monitor-column" aria-label="Valores monitorizados">
             <div className="monitor-heading">
@@ -878,11 +567,12 @@ function VentilatorSimulator({
             <div className="timing-strip">
               <span>Ti <strong>{metrics.ti.toFixed(2)} s</strong></span>
               <span>Te <strong>{metrics.te.toFixed(2)} s</strong></span>
+              <span>Auto-PEEP est. <strong>{metrics.autoPeep.toFixed(1)} cmH₂O</strong></span>
             </div>
             <p className="model-note">
               {mode === "VCV"
                 ? "Pplat é estimada pelo modelo. No ventilador real, confirme com pausa inspiratória quando indicada."
-                : "No PCV, o volume é resultado da ΔP, do Ti e da mecânica fixa do paciente virtual."}
+                : "No PCV, o volume depende da ΔP, do Ti, da subida da pressão e da mecânica do paciente virtual."}
             </p>
           </aside>
         </div>
@@ -920,7 +610,7 @@ function VentilatorSimulator({
           {mode === "VCV" ? (
             <>
               <ControlTile label="FiO₂" value={metrics.fio2.toFixed(0)} unit="%" disabled={locked} onDecrease={() => updateVcv("fio2", -1)} onIncrease={() => updateVcv("fio2", 1)} />
-              <ControlTile label="VC" value={metrics.vt.toFixed(0)} unit="mL" disabled={locked} onDecrease={() => updateVcv("vt", -1)} onIncrease={() => updateVcv("vt", 1)} />
+              <ControlTile label="VC" value={vcvSettings.vt.toFixed(0)} unit="mL" disabled={locked} onDecrease={() => updateVcv("vt", -1)} onIncrease={() => updateVcv("vt", 1)} />
               <ControlTile label="Ti" value={metrics.ti.toFixed(2)} unit="s" calculated calculatedNote="Definido automaticamente por VC ÷ fluxo" />
               <ControlTile label="Frequência" value={metrics.rr.toFixed(0)} unit="rpm" disabled={locked} onDecrease={() => updateVcv("rr", -1)} onIncrease={() => updateVcv("rr", 1)} />
               <ControlTile label="Fluxo" value={metrics.flow.toFixed(0)} unit="L/min" disabled={locked} onDecrease={() => updateVcv("flow", -1)} onIncrease={() => updateVcv("flow", 1)} />
@@ -930,7 +620,7 @@ function VentilatorSimulator({
             <>
               <ControlTile label="FiO₂" value={metrics.fio2.toFixed(0)} unit="%" disabled={locked} onDecrease={() => updatePcv("fio2", -1)} onIncrease={() => updatePcv("fio2", 1)} />
               <ControlTile label="ΔP insp" value={metrics.pinsp.toFixed(0)} unit="cmH₂O" disabled={locked} onDecrease={() => updatePcv("pinsp", -1)} onIncrease={() => updatePcv("pinsp", 1)} />
-              <ControlTile label="Ti" value={metrics.ti.toFixed(2)} unit="s" disabled={locked} onDecrease={() => updatePcv("ti", -1)} onIncrease={() => updatePcv("ti", 1)} />
+              <ControlTile label="Ti" value={pcvSettings.ti.toFixed(2)} unit="s" disabled={locked} onDecrease={() => updatePcv("ti", -1)} onIncrease={() => updatePcv("ti", 1)} />
               <ControlTile label="Frequência" value={metrics.rr.toFixed(0)} unit="rpm" disabled={locked} onDecrease={() => updatePcv("rr", -1)} onIncrease={() => updatePcv("rr", 1)} />
               <ControlTile label="Subida" value={metrics.rise.toFixed(2)} unit="s" disabled={locked} onDecrease={() => updatePcv("rise", -1)} onIncrease={() => updatePcv("rise", 1)} />
               <ControlTile label="PEEP" value={metrics.peep.toFixed(0)} unit="cmH₂O" disabled={locked} onDecrease={() => updatePcv("peep", -1)} onIncrease={() => updatePcv("peep", 1)} />

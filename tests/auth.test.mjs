@@ -345,3 +345,17 @@ test('novos módulos e seus arquivos clínicos exigem sessão e preservam o dest
     assert.equal((await request(entry,undefined,{Cookie})).status,200,entry);
   }
 });
+
+
+test('fotografias locais exigem sessão, inclusive o arquivo aberto diretamente', async t => {
+ const {request,login}=setup(t),Cookie=await login();
+ const photos=readdirSync('dist/assets').filter(name=>/^(bag|scope|tube|suction|supraglottic|sensor)-.*\.jpg$/.test(name));
+ assert.equal(photos.length,6);
+ for(const photo of photos){
+  const url='/assets/'+photo;
+  const anonymous=await request(url);
+  assert.equal(anonymous.status,303);
+  assert.equal(anonymous.headers.get('Cache-Control'),'private, no-store');
+  assert.equal((await request(url,undefined,{Cookie})).status,200);
+ }
+});

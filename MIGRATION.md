@@ -1,5 +1,13 @@
 # Registro de migração
 
+## Fotografias e curvas de VM — 10/11/2026
+
+- Seis fotografias reais de equipamentos substituem os desenhos; arquivos locais, ampliação acessível e créditos/licenças no módulo. Fontes em `src/simulators/fundamentos/images/README.md`.
+- VM usa equação do movimento com solução periódica de um compartimento, rampa de pressão no PCV, expiração coerente com R×C e volume retido. Curvas e valores derivam do mesmo modelo.
+- Pressão, fluxo e volume compartilham relógio, janela e congelamento; escalas numéricas, linha de PEEP, indicação inspiratória e descrição textual.
+- Esta revisão autorizada substitui a preservação byte a byte do núcleo VM descrita nas notas históricas abaixo. Casos e limites originais permanecem protegidos; testes fisiológicos verificam o novo modelo. Choque/RCP e autenticação não foram alterados.
+
+
 ## Percurso e via aérea avançada — 10/11/2026
 
 - BLS abre o percurso, seguido por ECG, RCP avançada/ACLS, choque, eletrólitos, gasometria, via aérea e ventilação mecânica. Catálogo continua permitindo acesso direto a qualquer módulo.

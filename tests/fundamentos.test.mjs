@@ -16,6 +16,7 @@ function load(relative){
  vm.runInNewContext(source,{module,exports:module.exports,require:name=>{
   if(!name.startsWith('.'))return requirePackage(name);
   const local=path.resolve(path.dirname(file),name);
+  if(name.endsWith('.jpg')){assert.ok(existsSync(local));return {default:local,__esModule:true};}
   return load(local+(existsSync(local+'.ts')?'.ts':'.tsx'));
  }},{filename:file});
  return module.exports;
@@ -193,8 +194,11 @@ test('imagens e capnogramas têm descrição acessível e sinais coerentes com c
  assert.ok(capnoValue('capno-lost',7)>0);
  assert.equal(capnoValue('capno-lost',8),0);
  const kit=renderToStaticMarkup(React.createElement(TeachingFigureView,{kind:'equipment'}));
- assert.equal((kit.match(/role="img"/g)||[]).length,6);
- assert.match(kit,/Bolsa e máscara/);assert.match(kit,/Capnógrafo/);
+ assert.equal((kit.match(/aria-label="Ampliar fotografia:/g)||[]).length,6);
+ assert.equal((kit.match(/<dialog/g)||[]).length,6);
+ assert.equal((kit.match(/alt="Fotografia de/g)||[]).length,6);
+ assert.match(kit,/Créditos das fotografias/);
+ assert.match(kit,/Bolsa e máscara/);assert.match(kit,/Sensor de capnografia/);
 });
 test('percurso começa pelo BLS, apresenta ECG antes do ACLS e termina em ventilação mecânica',()=>{
  const {learningPath}=load('src/data/learning-path.ts');

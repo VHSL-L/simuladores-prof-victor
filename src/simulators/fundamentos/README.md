@@ -74,7 +74,7 @@ Validação de interface em desktop e celular inclui resposta errada comentada, 
 
 - Catálogo em `src/data/learning-path.ts`: BLS → ECG na emergência → RCP avançada/ACLS → choque → eletrólitos → gasometria → via aérea avançada → ventilação mecânica. Ordem sugerida, sem bloqueio de módulos por progresso.
 - Novo módulo privado `/via-aerea`, com seis casos e 18 questões de quatro alternativas já comentadas. Total: 31 casos, 84 questões de escolha, 252 comentários de erro e 12 questões numéricas.
-- `teaching-figures.tsx` contém seis ilustrações vetoriais originais de equipamentos e três apresentações de capnografia (persistente, ausente e perda súbita). Sem fotografias de pacientes, imagens externas ou reprodução de figuras de diretrizes.
+- `teaching-figures.tsx` mostra seis fotografias reais de equipamentos com ampliação e créditos (fontes/licenças em `images/README.md`) e três capnogramas sintéticos (persistente, ausente e perda súbita). As fotos são servidas localmente sob autenticação. Sem fotografias de pacientes nem reprodução de figuras de diretrizes.
 - Capnogramas têm eixos de tempo e CO₂, descrição textual acessível e rolagem no celular. São sinais didáticos sintéticos; não predizem fisiologia. O trecho de 15 segundos não substitui a duração total de confirmação informada no caso.
 - `Case.figure` e `CaseUpdate.figure` permitem mudar a imagem com a reavaliação e restaurá-la ao voltar. A revisão final mantém a imagem de cada momento.
 - Testes cobrem ordem pedagógica, conteúdo e comentários, capnogramas, contexto histórico das imagens e exigência de sessão na nova rota, HTML e conteúdo clínico. A figura dos equipamentos não é uma lista completa de material nem ensina técnica manual.

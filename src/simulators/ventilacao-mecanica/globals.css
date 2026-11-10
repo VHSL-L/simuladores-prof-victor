@@ -1839,3 +1839,24 @@ button:focus-visible,
     font-size: 10px;
   }
 }
+
+/* Synchronized, scaled respiratory waveforms. */
+.waveform-monitor{min-width:0}
+.waves-column{grid-template-rows:repeat(3,170px)}
+.wave-panel{height:170px;background:#050b0c}
+.wave-heading{top:6px;left:42px;padding:0;background:transparent}
+.wave-heading strong{font-size:12px}
+.wave-heading span:last-child{font-size:11px;color:#b2c6ca}
+.wave-dot{box-shadow:none}
+.wave-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 8px;font-size:12px;color:#bfced1}
+.wave-controls>span{margin-right:auto}
+.wave-controls label{display:flex;align-items:center;gap:6px}
+.wave-controls button,.wave-controls select{border:1px solid #53686d;background:#18292e;color:#edf4f5;padding:7px 9px;border-radius:4px;font:inherit;cursor:pointer}
+.wave-controls button[aria-pressed="true"]{border-color:#e6c15b;color:#ffe698}
+.wave-controls :focus-visible,.wave-guide summary:focus-visible{outline:2px solid #83d7e3;outline-offset:3px}
+.wave-guide{font-size:12px;color:#b4c9cd;line-height:1.6;margin:10px 0 4px;padding:0 5px}
+.wave-guide summary{cursor:pointer;color:#d9e9eb}
+.wave-guide p{margin:9px 0}
+.wave-guide a{color:#91d6df;text-decoration:underline}
+.timing-strip{flex-wrap:wrap;gap:9px}
+@media(max-width:600px){.waves-column{grid-template-rows:repeat(3,175px)}.wave-panel{height:175px}.wave-controls>span{width:100%}.wave-controls button{margin-left:auto;min-height:40px}.wave-controls select{min-height:40px}}
