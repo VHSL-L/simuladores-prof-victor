@@ -16,7 +16,7 @@ Entrada: `/simulators/ventilacao-mecanica/index.html`. Rota: `/ventilacao-mecani
 
 A tela reúne faixa superior de alertas por prioridade, gráficos à esquerda, monitorização à direita e parâmetros ajustados na faixa inferior. “Ampliar painel” oculta o contexto de aula dentro do módulo; “Voltar ao caso” restaura o contexto sem reiniciar os ajustes. As informações de pressão/volume usam cores correspondentes às curvas. Não se exibem estados fictícios de bateria, rede de gases ou desconexão.
 
-`waveform-monitor.tsx` usa relógio único, escalas numéricas adaptadas à amplitude, janelas de 6/12/24 s e congelamento simultâneo. Alterar um controle recalcula inclusive as curvas congeladas. Preferência por movimento reduzido inicia com curvas congeladas. Todas as curvas têm descrição textual e os valores permanecem disponíveis em texto.
+`waveform-monitor.tsx` usa relógio único, escalas numéricas adaptadas à amplitude, janelas de 6/12/18/24/30 s (18 s inicialmente em telas largas; 12 s nas menores), eixo de 0 até a duração da janela, divisões principais de 1 s e subdivisões de 0,5 s e congelamento simultâneo. Alterar um controle recalcula inclusive as curvas congeladas. Preferência por movimento reduzido inicia com curvas congeladas. A tela explicita o período de um ciclo, 60/FR: no caso inicial, FR 6/min significa 10 s entre ciclos. Mudar a escala altera apenas o enquadramento, não a frequência ou a velocidade do tempo. Todas as curvas têm descrição textual e os valores permanecem disponíveis em texto.
 
 As estimativas de SpO₂/PaCO₂ e metas de avaliação dos casos permanecem heurísticas didáticas do módulo original; não constituem previsão fisiológica validada. Não usar para ajustar ventiladores reais.
 
