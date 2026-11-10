@@ -22,11 +22,13 @@ function load(relative){
 }
 const root='src/simulators/fundamentos/';
 const modules=['bls','gasometria','ecg','eletrolitos'].map(slug=>load(root+slug+'.ts')[slug]);
+const airway=load(root+'via-aerea.ts').viaAerea;
+modules.push(airway);
 const {isCorrect,anionGap,correctedGap,winter,calculatedPh,caseStateAt}=load(root+'types.ts');
 const {beatTimes,waveValue,wavePath}=load(root+'ecg-wave.ts');
 const {AnswerFeedback}=load(root+'answer-feedback.tsx');
-test('25 casos completos, respostas válidas e referências em todos os novos módulos',()=>{
- assert.equal(modules.reduce((n,m)=>n+m.cases.length,0),25);
+test('31 casos completos, respostas válidas e referências em todos os novos módulos',()=>{
+ assert.equal(modules.reduce((n,m)=>n+m.cases.length,0),31);
  for(const m of modules){assert.ok(m.references.length>=2);assert.equal(new Set(m.cases.map(c=>c.id)).size,m.cases.length);
   for(const c of m.cases){assert.ok(c.questions.length>=2);assert.ok(c.context&&c.takeaway);assert.equal(new Set(c.questions.map(q=>q.id)).size,c.questions.length);
    for(const q of c.questions){assert.ok(q.explanation);assert.ok(Boolean(q.numeric)!==Boolean(q.options));
@@ -36,7 +38,7 @@ test('25 casos completos, respostas válidas e referências em todos os novos m�
   }
  }
 });
-test('cada uma das 198 alternativas incorretas tem comentário específico e o gabarito fica sem comentário de erro',()=>{
+test('cada uma das 252 alternativas incorretas tem comentário específico e o gabarito fica sem comentário de erro',()=>{
  let count=0;
  for(const m of modules)for(const c of m.cases)for(const q of c.questions){
   if(!q.options)continue;
@@ -49,7 +51,7 @@ test('cada uma das 198 alternativas incorretas tem comentário específico e o g
    count++;
   }
  }
- assert.equal(count,198);
+ assert.equal(count,252);
 });
 test('gabarito comentado só revela o comentário da opção confirmada e também funciona na revisão',()=>{
  const render=(q,answer)=>renderToStaticMarkup(React.createElement(AnswerFeedback,{question:q,answer}));
@@ -154,4 +156,53 @@ test('ritmos não chocáveis não são confundidos com indicação de desfibrila
  const trace=modules[2].cases.find(c=>c.id==='asystole').trace;
  assert.equal(beatTimes(trace).length,0);
  for(let t=0;t<6;t+=.05)assert.equal(waveValue(trace,t),0);
+});
+
+test('via aérea inclui seis casos ilustrados, confirmação por CO₂ e prioridades de resgate',()=>{
+ assert.equal(airway.cases.length,6);
+ assert.equal(airway.cases.reduce((n,c)=>n+c.questions.length,0),18);
+ for(const c of airway.cases)assert.ok(c.figure);
+ const expected=id=>{const q=airway.cases.flatMap(c=>c.questions).find(q=>q.id===id);return q.options.find(o=>o.id===q.answer).text;};
+ assert.match(expected('tube-confirm'),/CO₂ expirado sustentado/);
+ assert.match(expected('tube-depth'),/profundidade.*bilateral/);
+ assert.match(expected('no-co2-action'),/remover o tubo.*oxigenação/);
+ assert.match(expected('rescue-failure'),/acesso cervical.*equipe habilitada/);
+ const absent=airway.cases.find(c=>c.id==='absent-co2');
+ assert.equal(caseStateAt(absent,0).figure,'capno-absent');
+ assert.equal(caseStateAt(absent,1).figure,'capno-absent');
+ assert.equal(caseStateAt(absent,2).figure,'capno-normal');
+ assert.equal(caseStateAt(absent,0).figure,'capno-absent');
+ const transfer=airway.cases.find(c=>c.id==='transport');
+ assert.equal(caseStateAt(transfer,0).figure,'capno-normal');
+ assert.equal(caseStateAt(transfer,1).figure,'capno-lost');
+ assert.equal(caseStateAt(transfer,2).figure,'capno-normal');
+ assert.equal(transfer.figure,'capno-normal');
+});
+test('imagens e capnogramas têm descrição acessível e sinais coerentes com cada etapa',()=>{
+ const {capnoValue,capnoPath,TeachingFigureView}=load(root+'teaching-figures.tsx');
+ for(const kind of ['capno-normal','capno-absent','capno-lost']){
+  assert.ok(!/NaN|Infinity/.test(capnoPath(kind)));
+  for(let time=0;time<=15;time+=.02){
+   const value=capnoValue(kind,time);
+   assert.ok(value>=-1e-8&&value<=35.001);
+   if(kind==='capno-absent'||kind==='capno-lost'&&time>=7.5)assert.equal(value,0);
+  }
+  assert.match(renderToStaticMarkup(React.createElement(TeachingFigureView,{kind})),/role="img" aria-label="Trecho de 15 segundos/);
+ }
+ assert.ok(capnoValue('capno-normal',4)>30);
+ assert.ok(capnoValue('capno-lost',7)>0);
+ assert.equal(capnoValue('capno-lost',8),0);
+ const kit=renderToStaticMarkup(React.createElement(TeachingFigureView,{kind:'equipment'}));
+ assert.equal((kit.match(/role="img"/g)||[]).length,6);
+ assert.match(kit,/Bolsa e máscara/);assert.match(kit,/Capnógrafo/);
+});
+test('percurso começa pelo BLS, apresenta ECG antes do ACLS e termina em ventilação mecânica',()=>{
+ const {learningPath}=load('src/data/learning-path.ts');
+ const routes=Array.from(learningPath,m=>m.href);
+ assert.equal(routes.length,8);assert.equal(new Set(routes).size,8);
+ assert.equal(routes[0],'/bls');
+ assert.ok(routes.indexOf('/ecg')<routes.indexOf('/rcp'));
+ assert.ok(routes.indexOf('/bls')<routes.indexOf('/rcp'));
+ assert.equal(routes.at(-2),'/via-aerea');
+ assert.equal(routes.at(-1),'/ventilacao-mecanica');
 });

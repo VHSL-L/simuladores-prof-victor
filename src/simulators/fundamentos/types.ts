@@ -1,9 +1,10 @@
 export type Option = { id: string; text: string; whyIncorrect: string | null };
 type ChoiceInput = [text: string, whyIncorrect: string | null];
 export type Observation = { label: string; value: string };
+export type TeachingFigure = 'equipment' | 'capno-normal' | 'capno-absent' | 'capno-lost';
 export type CaseUpdate = {
   label: string; context: string;
-  observations?: Observation[]; gas?: Gas; trace?: Trace;
+  observations?: Observation[]; gas?: Gas; trace?: Trace; figure?: TeachingFigure;
 };
 export type Question = {
   id: string; title: string; prompt?: string; explanation: string;
@@ -16,7 +17,7 @@ export type Gas = { ph: number; co2: number; hco3: number; na: number; cl: numbe
 export type Case = {
   id: string; title: string; focus: string; context: string;
   observations: Observation[];
-  questions: Question[]; takeaway: string; trace?: Trace; gas?: Gas;
+  questions: Question[]; takeaway: string; trace?: Trace; gas?: Gas; figure?: TeachingFigure;
 };
 export type LearningModule = {
   slug: string; title: string; subtitle: string; scope: string; objectives: string[];
@@ -37,7 +38,7 @@ export function calculatedPh(co2: number, hco3: number) { return 6.1 + Math.log1
 
 // Only reveal updates reached by the current step, including when reviewing backwards.
 export function caseStateAt(item: Case, cursor: number) {
-  let state = { observations: item.observations, gas: item.gas, trace: item.trace };
+  let state = { observations: item.observations, gas: item.gas, trace: item.trace, figure: item.figure };
   let latest: CaseUpdate | undefined;
   for (const question of item.questions.slice(0, Math.max(0, cursor + 1))) {
     if (!question.update) continue;
@@ -46,6 +47,7 @@ export function caseStateAt(item: Case, cursor: number) {
       observations: latest.observations ?? state.observations,
       gas: latest.gas ?? state.gas,
       trace: latest.trace ?? state.trace,
+      figure: latest.figure ?? state.figure,
     };
   }
   return { ...state, latest };

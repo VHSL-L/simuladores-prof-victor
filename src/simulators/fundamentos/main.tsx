@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState, type FormEvent } from 'react';
 import { createRoot } from 'react-dom/client';
+import { viaAerea } from './via-aerea';
+import { TeachingFigureView } from './teaching-figures';
 import { bls } from './bls';
 import { gasometria } from './gasometria';
 import { ecg } from './ecg';
@@ -8,7 +10,7 @@ import { isCorrect, caseStateAt, type Case, type LearningModule, type Trace } fr
 import { wavePath } from './ecg-wave';
 import { AnswerFeedback } from './answer-feedback';
 import './styles.css';
-const modules: Record<string, LearningModule> = { bls, gasometria, ecg, eletrolitos };
+const modules: Record<string, LearningModule> = { bls, gasometria, ecg, eletrolitos, 'via-aerea': viaAerea };
 const slug = window.location.pathname.split('/')[2];
 const learning = modules[slug];
 const format = (n:number) => n.toLocaleString('pt-BR',{maximumFractionDigits:2});
@@ -66,8 +68,8 @@ function LearningApp({module}:{module:LearningModule}) {
  <div className="case-intro"><p className="eyebrow">{item.focus}</p><h2 ref={caseHeading} tabIndex={-1}>{item.title}</h2><p className="presentation-label">Apresentação inicial</p><p>{item.context}</p>
  {current.latest&&<details className="initial-data"><summary>Consultar dados iniciais</summary><Observations item={item}/></details>}
  {current.latest&&<div className="case-update"><p className="eyebrow">Dados na etapa atual</p><h3 ref={updateHeading} tabIndex={-1}>{current.latest.label}</h3><p>{current.latest.context}</p></div>}
- <Observations item={current}/>{current.trace&&<TraceView key={`${caseId}-${current.trace.kind}-${current.trace.rate}`} trace={current.trace}/>}</div>
- {complete ? <section className="completion"><p className="eyebrow">Revisão do caso</p><h2 tabIndex={-1} ref={heading}>Roteiro concluído</h2><p className="takeaway">{item.takeaway}</p><p>{toReview.length?`${toReview.length} ${toReview.length===1?'ponto merece':'pontos merecem'} uma nova leitura.`:'Você identificou as decisões esperadas neste roteiro.'} Isso não certifica competência prática.</p><div className="review-list">{item.questions.map((q,i)=><details key={q.id}><summary><span className={isCorrect(q,attempt.answers[i])?'review-ok':'review-again'}>{isCorrect(q,attempt.answers[i])?'Conferido':'Rever'}</span>{q.title}</summary><p className="small">Dados usados: {caseStateAt(item,i).latest?.label??'apresentação inicial'}.</p><Observations item={caseStateAt(item,i)}/>{caseStateAt(item,i).trace&&<p><strong>Traçado nesta etapa:</strong> {caseStateAt(item,i).trace!.description}</p>}<AnswerFeedback question={q} answer={attempt.answers[i]}/></details>)}</div><div className="actions"><button className="primary" onClick={()=>update(()=>emptyAttempt())}>Refazer este caso</button><button className="secondary" onClick={()=>setCaseId(module.cases[(module.cases.indexOf(item)+1)%module.cases.length].id)}>Escolher o próximo caso</button></div></section> : <section className="question-panel">
+ <Observations item={current}/>{current.figure&&<TeachingFigureView kind={current.figure}/>} {current.trace&&<TraceView key={`${caseId}-${current.trace.kind}-${current.trace.rate}`} trace={current.trace}/>}</div>
+ {complete ? <section className="completion"><p className="eyebrow">Revisão do caso</p><h2 tabIndex={-1} ref={heading}>Roteiro concluído</h2><p className="takeaway">{item.takeaway}</p><p>{toReview.length?`${toReview.length} ${toReview.length===1?'ponto merece':'pontos merecem'} uma nova leitura.`:'Você identificou as decisões esperadas neste roteiro.'} Isso não certifica competência prática.</p><div className="review-list">{item.questions.map((q,i)=><details key={q.id}><summary><span className={isCorrect(q,attempt.answers[i])?'review-ok':'review-again'}>{isCorrect(q,attempt.answers[i])?'Conferido':'Rever'}</span>{q.title}</summary><p className="small">Dados usados: {caseStateAt(item,i).latest?.label??'apresentação inicial'}.</p><Observations item={caseStateAt(item,i)}/>{caseStateAt(item,i).figure&&<TeachingFigureView kind={caseStateAt(item,i).figure!}/>} {caseStateAt(item,i).trace&&<p><strong>Traçado nesta etapa:</strong> {caseStateAt(item,i).trace!.description}</p>}<AnswerFeedback question={q} answer={attempt.answers[i]}/></details>)}</div><div className="actions"><button className="primary" onClick={()=>update(()=>emptyAttempt())}>Refazer este caso</button><button className="secondary" onClick={()=>setCaseId(module.cases[(module.cases.indexOf(item)+1)%module.cases.length].id)}>Escolher o próximo caso</button></div></section> : <section className="question-panel">
  <div className="step-line"><span>Etapa {attempt.cursor+1} de {item.questions.length}</span><progress value={attempt.cursor+1} max={item.questions.length} aria-label="Etapa atual" /></div>
  <h2 ref={heading} tabIndex={-1}>{question.title}</h2>{question.prompt&&<p className="question-context">{question.prompt}</p>}
  <form onSubmit={check}>

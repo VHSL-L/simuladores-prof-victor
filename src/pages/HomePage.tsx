@@ -1,4 +1,5 @@
 import { PageMetadata } from "../components/PageMetadata";
+import { learningPath } from "../data/learning-path";
 import { SimulatorCard } from "../components/SimulatorCard";
 
 export function HomePage() {
@@ -34,34 +35,10 @@ export function HomePage() {
             <p className="eyebrow">Biblioteca de prática</p>
             <h2 id="simuladores-title">Simuladores</h2>
           </div>
-          <p>Escolha um tema para começar.<br />Acesso gratuito para alunos da UNC.</p>
+          <p>Percurso sugerido, do atendimento inicial ao suporte avançado.<br />Você pode abrir qualquer módulo. Acesso gratuito para alunos da UNC.</p>
         </div>
         <div className="simulator-grid">
-          <SimulatorCard
-            index="01"
-            title="Ventilação Mecânica"
-            href="/ventilacao-mecanica"
-            available
-            description="Treinamento de raciocínio e tomada de decisão em ventilação mecânica."
-          />
-          <SimulatorCard
-            index="02"
-            title="Choque"
-            href="/choque"
-            available
-            description="Avaliação e tomada de decisão no atendimento ao paciente em choque."
-          />
-          <SimulatorCard
-            index="03"
-            title="RCP"
-            description="Simulação interativa de ressuscitação cardiopulmonar e tomada de decisão durante a parada cardiorrespiratória."
-            href="/rcp"
-            available
-          />
-          <SimulatorCard index="04" title="BLS · suporte básico de vida" href="/bls" available description="Quatro casos guiados: reconhecer a parada, iniciar RCP, usar o DEA e ventilar o adulto com pulso." />
-          <SimulatorCard index="05" title="Gasometria arterial" href="/gasometria" available description="Oito casos para interpretar o equilíbrio ácido-base, calcular ânion gap e conferir a compensação." />
-          <SimulatorCard index="06" title="ECG na emergência" href="/ecg" available description="Sete casos com traçados esquemáticos: ritmos importantes, instabilidade e abordagem inicial no pronto atendimento." />
-          <SimulatorCard index="07" title="Distúrbios eletrolíticos" href="/eletrolitos" available description="Seis casos sobre sódio, potássio e magnésio, com foco em interpretação e reconhecimento de urgências." />
+          {learningPath.map((module, index) => <SimulatorCard key={module.href} index={String(index + 1).padStart(2, '0')} {...module} available />)}
         </div>
       </section>
 

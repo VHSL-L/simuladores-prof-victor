@@ -1,0 +1,157 @@
+import { choice, type LearningModule } from './types';
+
+export const viaAerea: LearningModule = {
+ slug: 'via-aerea', title: 'Via aérea avançada', subtitle: 'Prepare a abordagem. Priorize a oxigenação. Confirme e reavalie.',
+ scope: 'Decisões em adultos, para discussão com equipe treinada. Casos fictícios com equipamentos e capnogramas ilustrativos. Não ensina a executar intubação ou acesso cervical, não define doses e não substitui treinamento supervisionado. O plano deve considerar experiência, recursos e protocolo local.',
+ objectives: ['Reconhecer riscos e preparar equipe, material e resgate.', 'Distinguir oxigenação, ventilação e confirmação do tubo.', 'Interpretar capnografia e reconhecer falha da estratégia inicial.'],
+ cases: [
+  { id:'preparation', title:'Antes de começar', focus:'Preparação e risco fisiológico', figure:'equipment',
+    context:'Adulto com pneumonia grave, fadiga e piora respiratória. A equipe experiente indica intubação e prepara o atendimento. Não há trauma. Você participa da checagem antes da abordagem.',
+    observations:[{label:'SpO₂',value:'88% com máscara com reservatório'},{label:'PA',value:'86/52 mmHg'},{label:'Respiração',value:'32/min, esforço importante'},{label:'Equipe',value:'Operador e assistentes presentes'}],
+    questions:[
+     choice('airway-risk','Qual risco merece atenção além da dificuldade anatômica?',[
+      ['A hipoxemia e a hipotensão aumentam o risco de deterioração durante a abordagem.',null],
+      ['A presença de oxigênio suplementar permite considerar resolvido o risco de dessaturação.','A SpO₂ continua em 88% apesar do oxigênio. Estar recebendo oxigênio não garante reserva suficiente para tolerar apneia.'],
+      ['A pressão baixa deve ser avaliada apenas depois da confirmação do tubo.','A hipotensão já aumenta o risco do procedimento. A avaliação e o suporte hemodinâmico precisam integrar a preparação, sem aguardar a intubação.'],
+      ['A avaliação anatômica favorável torna desnecessário modificar a preparação fisiológica.','Uma via aérea anatomicamente fácil pode coexistir com pouca reserva de oxigênio e instabilidade circulatória. São dimensões diferentes do risco.'],
+     ],0,'A preparação inclui otimizar oxigenação e hemodinâmica conforme a urgência e o contexto. A intubação pode ser tecnicamente simples e ainda assim ter alto risco fisiológico.'),
+     choice('airway-check','Qual conjunto deve estar pronto antes da primeira tentativa, quando o tempo permite?',[
+      ['Laringoscópio e tubo; os materiais de oxigenação e resgate podem ser buscados após uma falha.','Uma falha pode consumir rapidamente a reserva de oxigênio. Preparar ventilação, aspiração, monitorização e resgate antes evita uma busca tardia.'],
+      ['Oxigênio, ventilação, aspiração, intubação, capnografia e material de resgate, todos checados.',null],
+      ['Tubo e capnógrafo; um ventilador ligado dispensa conferir bolsa e máscara.','Falha do ventilador, dificuldade de intubação ou necessidade de resgate podem exigir ventilação manual. A alternativa de bolsa e máscara deve ser checada.'],
+      ['Bolsa e laringoscópio; a capnografia só é necessária se a ausculta for inconclusiva.','A capnografia com curva deve estar disponível para confirmar e acompanhar a ventilação após a intubação. Ausculta não substitui essa confirmação.'],
+     ],1,'A checagem cobre tanto a primeira estratégia quanto as alternativas: oxigenação, ventilação, aspiração, dispositivos de intubação, monitorização e resgate. A ilustração mostra categorias de equipamentos, não uma lista completa de preparo.'),
+     choice('airway-team','Como organizar o plano com a equipe?',[
+      ['Deixar a estratégia de resgate a cargo do operador quando a primeira tentativa terminar.','Decidir somente após a falha consome tempo e favorece fixação na mesma estratégia. Combine antecipadamente funções, limites e alternativas.'],
+      ['Definir apenas quem intuba; a distribuição das outras tarefas depende da evolução.','Monitorar, ventilar, preparar materiais e comunicar alterações são tarefas simultâneas. A falta de responsáveis claros pode atrasar respostas.'],
+      ['Combinar funções, comunicação, limites das tentativas e quando mudar para o resgate.',null],
+      ['Fixar um número de tentativas a cumprir, mesmo se a oxigenação piorar antes.','Limites são tetos, não metas a cumprir. Deterioração pode exigir abandonar a tentativa e priorizar oxigenação antes de atingir o limite.'],
+     ],2,'Um plano compartilhado torna explícito quem acompanha o paciente, quem pede ajuda e o que determina a mudança de estratégia. A resposta fisiológica deve orientar as decisões durante todo o atendimento.'),
+    ],takeaway:'Via aérea exige preparo anatômico, fisiológico e de equipe. O plano de resgate começa antes da falha.' },
+  { id:'mask', title:'Pouca expansão do tórax', focus:'Ventilação com bolsa e máscara', figure:'equipment',
+    context:'Após indução pela equipe habilitada, a ventilação com bolsa e máscara produz escape audível e pouca expansão torácica. Há pulso. A equipe disponibiliza outro profissional para ajudar.',
+    observations:[{label:'SpO₂',value:'91%, em queda'},{label:'Pulso',value:'Presente'},{label:'Máscara',value:'Escape de ar'},{label:'Recursos',value:'Dois profissionais e dispositivos auxiliares'}],
+    questions:[
+     choice('mask-action','Qual ajuste inicial responde melhor ao problema observado?',[
+      ['Aumentar a força e a frequência das insuflações mantendo a mesma vedação.','Mais força não corrige o escape nem a obstrução da via aérea e pode aumentar insuflação gástrica. Primeiro otimize a técnica e avalie a resposta.'],
+      ['Suspender a ventilação para concluir uma nova avaliação anatômica detalhada.','A saturação está caindo. A avaliação deve acompanhar medidas para recuperar a ventilação, sem uma pausa prolongada.'],
+      ['Trocar o oxímetro e aguardar outra leitura antes de corrigir o escape.','Há sinais diretos de ventilação inadequada: escape e pouca expansão. A conferência do monitor não deve adiar a correção desses achados.'],
+      ['Otimizar posição, abertura da via aérea e vedação com ajuda, usando auxiliares quando indicados.',null],
+     ],3,'Com ajuda, um profissional pode manter a abertura e a vedação enquanto outro ventila. A técnica, a posição e os auxiliares adequados devem ser ajustados pela equipe treinada, observando expansão e resposta.'),
+     choice('mask-assess','O que melhor indica a resposta à correção da técnica?',[
+      ['A bolsa oferece maior resistência, independentemente do tórax ou da saturação.','Resistência da bolsa pode representar obstrução e não comprova ventilação eficaz. É preciso integrar os sinais do paciente.'],
+      ['Há expansão torácica adequada, menor escape e melhora da oxigenação, com CO₂ expirado quando monitorizado.',null],
+      ['O reservatório de oxigênio permanece cheio, mesmo sem expansão torácica visível.','O reservatório indica disponibilidade de gás no circuito. Ele não demonstra passagem de ar até os pulmões.'],
+      ['A frequência de insuflação aumentou, mesmo que a SpO₂ continue caindo.','Aumentar o número de insuflações não prova eficácia. A ausência de expansão e a queda da saturação exigem reavaliar a ventilação.'],
+     ],1,'Confirme a eficácia no paciente, combinando observação do tórax, escape, oxigenação e CO₂ expirado quando disponível. Movimento da bolsa ou do reservatório isoladamente não garante ventilação.'),
+     {...choice('mask-next','A ventilação melhorou. Como interpretar essa mudança?',[
+      ['A melhora oferece tempo para reavaliar o plano e seguir com monitorização e equipe preparada.',null],
+      ['A melhora demonstra que a futura intubação será fácil e permite dispensar o resgate.','Ventilar com máscara não prediz com certeza a facilidade de intubação. Mantenha o plano de resgate disponível.'],
+      ['A saturação recuperada autoriza interromper a ventilação enquanto todo o material é reorganizado.','A recuperação depende do suporte em curso. Parar a ventilação pode levar novamente à deterioração.'],
+      ['A melhora elimina a necessidade de reavaliar a indicação de uma via aérea definitiva.','A necessidade de via aérea definitiva depende da doença e da evolução. A melhora transitória com máscara não encerra essa decisão.'],
+     ],0,'Recuperar a oxigenação permite parar para pensar e comunicar o próximo passo. Mantenha o suporte eficaz enquanto a equipe revê a estratégia, sem presumir que todos os riscos foram resolvidos.'),
+      update:{label:'Após ajuste com dois profissionais',context:'O escape diminui, o tórax expande e a saturação se recupera com ventilação assistida.',observations:[{label:'SpO₂',value:'97%'},{label:'Expansão',value:'Presente'},{label:'Ventilação',value:'Assistida com máscara'},{label:'Pulso',value:'Presente'}]}},
+    ],takeaway:'Recuperar ventilação e oxigenação tem prioridade. Uma bolsa que se move não demonstra, sozinha, ventilação eficaz.' },
+  { id:'confirmation', title:'Depois da passagem do tubo', focus:'Confirmação e cuidados imediatos', figure:'capno-normal',
+    context:'Adulto com pulso é intubado por profissional treinado. O operador relata ter visto o tubo passar entre as cordas vocais. A curva abaixo é um trecho ilustrativo de um registro que se mantém por mais de sete ventilações.',
+    observations:[{label:'SpO₂',value:'97%'},{label:'PA',value:'112/70 mmHg'},{label:'ETCO₂',value:'35 mmHg, curva persistente'},{label:'Ausculta',value:'Sons respiratórios bilaterais'}],
+    questions:[
+     choice('tube-confirm','Qual achado é central para excluir posição esofágica neste contexto?',[
+      ['Condensação visível no tubo em cada ventilação.','Condensação pode ocorrer sem posição traqueal correta. Ela não é uma confirmação confiável da ventilação alveolar.'],
+      ['Elevação da SpO₂ nos primeiros instantes após a intubação.','A oxigenação pode permanecer elevada por algum tempo após a pré-oxigenação, mesmo com posicionamento incorreto. Saturação não substitui capnografia.'],
+      ['CO₂ expirado sustentado na capnografia, integrado à visualização da passagem e ao contexto.',null],
+      ['Profundidade do tubo compatível com a marca habitualmente usada em adultos.','A marca externa é uma referência de profundidade, não prova o trajeto do tubo. Uma marca habitual pode estar presente mesmo com posição esofágica.'],
+     ],2,'A curva com CO₂ expirado sustentado é central para excluir posição esofágica. A visualização da passagem entre as cordas complementa a confirmação; o registro precisa ser coerente com a clínica e persistir, não apenas aparecer em uma expiração.'),
+     choice('tube-depth','A curva persistente resolve também a avaliação da profundidade do tubo?',[
+      ['Sim; qualquer curva persistente exclui intubação de um brônquio principal.','Um tubo avançado para um brônquio ainda pode produzir CO₂ expirado. A capnografia não exclui intubação seletiva.'],
+      ['Sim; com ETCO₂ em 35 mmHg, a marca externa do tubo perde utilidade.','Um valor de ETCO₂ não determina a profundidade. A marca e a avaliação clínica continuam relevantes.'],
+      ['Não; é preciso esperar radiografia antes de aceitar qualquer evidência de ventilação.','Não se deve adiar a confirmação imediata da ventilação esperando uma radiografia. Ela pode ajudar na profundidade, mas não substitui a capnografia.'],
+      ['Não; avaliar profundidade, ventilação bilateral e imagem quando indicada continua necessário.',null],
+     ],3,'Capnografia confirma ventilação alveolar naquele momento, mas não garante profundidade ideal nem ventilação bilateral. Confira a marca, o exame e a imagem quando indicada, sem interromper o suporte.'),
+     choice('tube-care','Qual conjunto de cuidados deve acompanhar a transição para ventilação mecânica?',[
+      ['Fixação, monitorização contínua, reavaliação da ventilação e hemodinâmica, com analgesia e sedação conforme necessidade.',null],
+      ['Fixação e transferência; a capnografia pode ser desligada após a primeira confirmação.','Deslocamento ou falha do circuito podem ocorrer depois. A confirmação inicial não dispensa a monitorização contínua.'],
+      ['Ajustar o ventilador e aguardar movimentos antes de considerar conforto ou sedação.','A ausência de movimento, inclusive sob bloqueio neuromuscular, não comprova conforto ou inconsciência. O cuidado pós-intubação deve ser planejado.'],
+      ['Priorizar a radiografia e reavaliar a pressão apenas se o paciente apresentar sinais de despertar.','Hipotensão pode surgir sem despertar. Ventilação, oxigenação e hemodinâmica precisam ser acompanhadas continuamente enquanto se organizam os demais cuidados.'],
+     ],0,'Intubação é uma etapa do atendimento. Fixe, acompanhe CO₂ e oxigenação, ajuste suporte e reavalie circulação e conforto. Analgesia e sedação dependem do contexto e do protocolo, não apenas de movimentos visíveis.'),
+    ],takeaway:'Confirmar posição, avaliar profundidade e manter vigilância são tarefas complementares.' },
+  { id:'absent-co2', title:'O monitor permanece plano', focus:'Ausência de CO₂ após intubação', figure:'capno-absent',
+    context:'Adulto com pulso foi intubado aparentemente sem dificuldade. A ventilação com máscara era eficaz antes. Após várias ventilações pelo tubo, não há CO₂ expirado sustentado. A equipe confere rapidamente sensor e conexões, sem corrigir a ausência da curva.',
+    observations:[{label:'SpO₂',value:'96% → 89%'},{label:'Pulso',value:'Presente'},{label:'Capnografia',value:'Sem curva sustentada'},{label:'Operador',value:'Acredita ter visto a passagem'}],
+    questions:[
+     choice('no-co2-reading','Qual interpretação é mais segura diante desse conjunto?',[
+      ['O tubo está confirmado porque o operador relata uma visão favorável.','A confiança do operador não substitui CO₂ expirado sustentado. A discrepância deve desencadear verificação e ação.'],
+      ['A posição traqueal não está confirmada; é preciso excluir posição esofágica imediatamente.',null],
+      ['A SpO₂ ainda acima de 85% confirma ventilação suficiente pelo tubo.','A saturação já está caindo e pode atrasar em relação à perda de ventilação. Não existe esse limiar que confirme posição ou eficácia do tubo.'],
+      ['A ausência de curva permite atribuir o problema a broncoespasmo sem rever a posição.','Presumir broncoespasmo pode mascarar intubação esofágica. Ausência persistente de CO₂ exige excluir posicionamento incorreto, mesmo quando outra causa parece possível.'],
+     ],1,'Sem CO₂ expirado sustentado, a posição esofágica deve ser ativamente excluída. Ausculta, condensação, saturação transitória e confiança na passagem não substituem a confirmação.'),
+     choice('no-co2-action','Com deterioração e checagem rápida sem solução, qual resposta é apropriada neste caso?',[
+      ['Manter o tubo e aguardar radiografia antes de alterar a estratégia.','A espera prolonga ventilação por um tubo não confirmado enquanto a saturação cai. A confirmação e o resgate precisam ser imediatos.'],
+      ['Aumentar repetidamente a pressão de ventilação para tentar produzir uma curva.','Forçar mais ventilações por um tubo não confirmado pode atrasar o resgate e causar insuflação gástrica se ele estiver no esôfago.'],
+      ['Declarar a falha de confirmação, remover o tubo e recuperar oxigenação com máscara ou resgate pela equipe.',null],
+      ['Avançar o tubo alguns centímetros sem nova visualização, usando a ausência da curva como guia.','Ausência de CO₂ não indica que basta avançar o tubo. Movimento às cegas não confirma o trajeto e pode agravar a situação.'],
+     ],2,'A resposta padrão à ausência persistente de CO₂ é retirar o tubo e restabelecer ventilação com máscara ou dispositivo de resgate. Neste caso, a máscara era eficaz e há dessaturação. Se a remoção for considerada perigosa em outro contexto, a equipe deve justificar e excluir posição esofágica imediatamente por técnica válida.'),
+     {...choice('no-co2-after','Após recuperar a ventilação com máscara, o que a nova curva permite concluir?',[
+      ['A ventilação alveolar foi recuperada; a equipe deve reavaliar a estratégia antes de nova tentativa.',null],
+      ['O tubo retirado provavelmente estava correto, pois o CO₂ voltou a aparecer.','A curva atual confirma ventilação pelo suporte atual. Ela não demonstra onde estava o tubo removido.'],
+      ['A capnografia era desnecessária, já que a saturação também respondeu ao resgate.','A ausência da curva foi um sinal decisivo para reconhecer o risco antes de maior deterioração. A melhora com resgate não torna essa monitorização dispensável.'],
+      ['Uma nova tentativa idêntica pode começar imediatamente, sem rever a dificuldade anterior.','Recuperar oxigenação oferece oportunidade para rever equipamento, técnica, operador e plano. Repetir sem análise pode reproduzir a falha.'],
+     ],0,'Interprete a curva no momento em que ela foi obtida. O resgate eficaz permite reavaliar e preparar outra estratégia, mas não valida retroativamente a posição do tubo anterior.'),
+      update:{label:'Após retirada e ventilação de resgate',context:'Com máscara, a equipe recupera expansão torácica, CO₂ expirado persistente e oxigenação. O tubo permanece retirado.',figure:'capno-normal',observations:[{label:'SpO₂',value:'97%'},{label:'ETCO₂',value:'35 mmHg, curva persistente'},{label:'Suporte',value:'Bolsa e máscara'},{label:'Pulso',value:'Presente'}]}},
+    ],takeaway:'Sem confirmação, não se ancore na impressão inicial. Recuperar oxigenação vem antes de insistir no tubo.' },
+  { id:'rescue', title:'A primeira estratégia não funcionou', focus:'Limites e plano de resgate', figure:'equipment',
+    context:'Após duas tentativas de intubação sem sucesso, o adulto apresenta dessaturação. A equipe treinada está completa e há dispositivo supraglótico disponível. O paciente tem pulso.',
+    observations:[{label:'SpO₂',value:'84%, em queda'},{label:'Intubação',value:'Duas tentativas sem sucesso'},{label:'Pulso',value:'Presente'},{label:'Prioridade atual',value:'Recuperar oxigenação'}],
+    questions:[
+     choice('attempt-stop','Como usar os limites de tentativas diante da dessaturação?',[
+      ['Completar o número máximo de tentativas antes de considerar uma alternativa.','O limite é um teto de segurança, não uma meta. A dessaturação pode exigir mudar o plano antes de alcançá-lo.'],
+      ['Repetir imediatamente a mesma tentativa, pois a dificuldade costuma diminuir com a repetição.','Repetições sem mudança podem causar trauma e consumir a reserva de oxigênio. A piora atual exige priorizar resgate.'],
+      ['Trocar apenas o operador e manter a laringoscopia apesar da queda de SpO₂.','Um operador mais experiente pode ajudar, mas isso não justifica manter tentativas enquanto a oxigenação se deteriora.'],
+      ['Interromper a insistência, pedir ou confirmar ajuda e recuperar oxigenação antes de nova estratégia.',null],
+     ],3,'A fisiologia determina quando parar. Não é necessário esgotar um número de tentativas para reconhecer falha e passar à oxigenação de resgate.'),
+     choice('rescue-choice','A ventilação com máscara continua inadequada apesar de otimização. Qual alternativa integra o resgate?',[
+      ['Dispositivo supraglótico apropriado, por profissional treinado, avaliando se restaura ventilação e oxigenação.',null],
+      ['Outra laringoscopia idêntica antes de usar o dispositivo supraglótico disponível.','A mesma estratégia já falhou e a oxigenação está inadequada. Repeti-la sem mudança atrasa a alternativa de resgate.'],
+      ['Aguardar a radiografia para excluir causa pulmonar antes de qualquer outro dispositivo.','A necessidade de oxigenação é imediata. Uma radiografia não deve atrasar a tentativa de restabelecer ventilação.'],
+      ['Iniciar compressões apenas porque a saturação está baixa, mantendo o plano de via aérea inalterado.','O pulso está presente. A prioridade atual é ventilação e oxigenação; compressões não substituem o resgate de via aérea.'],
+     ],0,'Um dispositivo supraglótico, preferencialmente de segunda geração quando disponível e apropriado, pode recuperar ventilação após falha da intubação. A equipe verifica eficácia e reavalia o próximo passo, mantendo limites para as tentativas.'),
+     {...choice('rescue-failure','A equipe não consegue intubar nem oxigenar após as alternativas otimizadas. Como reconhecer essa etapa?',[
+      ['Há tempo para novas tentativas de laringoscopia enquanto ainda existir pulso.','Pulso presente não garante tempo seguro com hipoxemia progressiva. Insistir pode atrasar uma intervenção de emergência necessária.'],
+      ['É suficiente aguardar recuperação espontânea sem comunicar a falha de oxigenação.','A falha de oxigenação precisa ser declarada e tratada como emergência. Espera passiva não é um plano de resgate.'],
+      ['Declarar a emergência de falha de oxigenação e acionar o plano de acesso cervical pela equipe habilitada.',null],
+      ['A ausência de intubação permite adiar a decisão até a disponibilidade de imagem.','A decisão depende da impossibilidade de oxigenar e da deterioração, não de confirmação por imagem. Adiar pode causar dano grave.'],
+     ],2,'Quando as estratégias de intubação, dispositivo supraglótico e máscara não permitem oxigenação, a equipe deve reconhecer e declarar a emergência e seguir o plano de acesso cervical de emergência. Este módulo treina a decisão; a execução requer capacitação específica.'),
+      update:{label:'Falha das alternativas de oxigenação',context:'Ventilação com máscara otimizada e dispositivo supraglótico não geram ventilação eficaz. A equipe sênior confirma a falha; a saturação continua caindo.',observations:[{label:'SpO₂',value:'70%, em queda'},{label:'Máscara e supraglótico',value:'Sem ventilação eficaz'},{label:'Pulso',value:'Presente'},{label:'Equipe sênior',value:'Ao lado do paciente'}]}},
+    ],takeaway:'Limites de tentativas evitam insistência. Reconhecer cedo a falha de oxigenação é parte do resgate.' },
+  { id:'transport', title:'Mudança durante o transporte', focus:'Vigilância após a confirmação', figure:'capno-normal',
+    context:'Adulto intubado, com CO₂ expirado persistente e ventilação bilateral, será movimentado da maca para o leito. A equipe organiza a transferência com monitorização.',
+    observations:[{label:'SpO₂',value:'98%'},{label:'ETCO₂',value:'35 mmHg'},{label:'PA',value:'118/72 mmHg'},{label:'Tubo',value:'Fixado, marca registrada'}],
+    questions:[
+     choice('transfer-check','Que cuidado deve acompanhar a movimentação?',[
+      ['Desconectar a capnografia para simplificar o transporte, retomando-a após a acomodação.','A movimentação é um momento de risco de deslocamento e desconexão. A monitorização deve acompanhar a transferência.'],
+      ['Vigiar fixação, conexões, curva de CO₂ e sinais clínicos durante e após a transferência.',null],
+      ['Confiar na confirmação inicial e verificar o tubo apenas se o paciente despertar.','Deslocamento ou desconexão podem ocorrer sem despertar. A confirmação inicial vale para aquele momento e precisa de vigilância contínua.'],
+      ['Monitorar apenas a saturação, pois ela muda antes de qualquer falha ventilatória.','A SpO₂ pode demorar a cair, especialmente com oxigênio suplementar. A perda da curva de CO₂ pode sinalizar um problema mais cedo.'],
+     ],1,'Após movimentação, reconfirme ventilação e mantenha capnografia, oximetria e avaliação clínica. A vigilância inclui paciente, tubo, circuito e equipamento.'),
+     {...choice('trace-response','O que a perda súbita da curva exige agora?',[
+      ['Aguardar queda maior da saturação antes de investigar conexões ou posição do tubo.','A perda súbita da curva já é um alerta. Esperar deterioração maior pode atrasar a correção de desconexão ou deslocamento.'],
+      ['Considerar o tubo retirado da traqueia com certeza, sem avaliar circuito ou paciente.','A perda da curva tem mais de uma causa. O atendimento deve avaliar rapidamente paciente, tubo, conexões e equipamento enquanto mantém oxigenação.'],
+      ['Tratar como artefato até que um novo exame de imagem mostre alteração.','Não há evidência para presumir artefato. A alteração após movimentação pode indicar falha real e precisa de avaliação imediata.'],
+      ['Avaliar imediatamente paciente, tubo e circuito, garantindo oxigenação e ventilação enquanto corrige a causa.',null],
+     ],3,'Perda súbita de CO₂ após movimentação exige ação. Confira pulso, ventilação, conexões e posição do tubo e ofereça suporte imediato. Não atribua o achado automaticamente a uma causa única nem espere imagem.'),
+      update:{label:'Durante a transferência',context:'O capnograma perde a curva abruptamente. O paciente mantém pulso; a saturação começa a cair.',figure:'capno-lost',observations:[{label:'SpO₂',value:'98% → 93%'},{label:'Capnografia',value:'Perda súbita da curva'},{label:'Pulso',value:'Presente'},{label:'Evento',value:'Movimentação recente'}]}},
+     {...choice('trace-recovered','A causa foi corrigida e a curva voltou. Qual conduta encerra melhor essa reavaliação?',[
+      ['Retomar o transporte sem rever as conexões, pois o retorno do número de ETCO₂ basta.','A recuperação deve ser confirmada como sustentada e acompanhada da revisão da causa. Um número isolado não demonstra estabilidade do sistema.'],
+      ['Desligar alarmes para evitar nova interrupção do transporte.','Os alarmes ajudaram a identificar um problema real. Devem permanecer adequados ao paciente, e não ser desativados por conveniência.'],
+      ['Confirmar curva sustentada e resposta clínica, revisar conexões e manter monitorização.',null],
+      ['Trocar o tubo obrigatoriamente, mesmo com posição reconfirmada e ventilação eficaz.','A desconexão foi corrigida e a posição foi reconfirmada. Não há indicação automática de uma nova intubação só porque o evento ocorreu.'],
+     ],2,'Depois de corrigir a causa, confirme que o suporte voltou a funcionar de modo sustentado. Reavalie o conjunto e corrija o fator que permitiu a desconexão antes de seguir.'),
+      update:{label:'Após checagem do circuito',context:'A equipe identifica uma conexão solta, reconecta e reconfirma ventilação bilateral, posição do tubo e CO₂ sustentado.',figure:'capno-normal',observations:[{label:'SpO₂',value:'98%'},{label:'ETCO₂',value:'35 mmHg, curva persistente'},{label:'Tubo',value:'Posição reconfirmada'},{label:'Circuito',value:'Conexão corrigida'}]}},
+    ],takeaway:'Uma confirmação inicial não garante que a via aérea continuará segura após mudanças de posição ou transporte.' },
+ ],
+ references:[
+  {title:'Difficult Airway Society 2025 · Via aérea difícil não antecipada em adultos',url:'https://das.uk.com/guidelines/das_intubation_guidelines/'},
+  {title:'PUMA e sociedades de via aérea 2022 · Prevenção de intubação esofágica não reconhecida',url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC9804892/'},
+  {title:'Resuscitation Council UK 2025 · Suporte avançado, via aérea e capnografia',url:'https://www.resus.org.uk/professional-library/2025-resuscitation-guidelines/adult-advanced-life-support-guidelines'},
+ ],
+};

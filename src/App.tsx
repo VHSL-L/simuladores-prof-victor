@@ -43,6 +43,9 @@ export default function App() {
     case "/eletrolitos":
       page = <ClinicalSimulatorPage slug="eletrolitos" title="Distúrbios eletrolíticos" frameTitle="Distúrbios eletrolíticos — casos guiados" description="Seis casos para integrar sódio, potássio e magnésio aos sinais clínicos e às prioridades do atendimento." />;
       break;
+    case "/via-aerea":
+      page = <ClinicalSimulatorPage slug="via-aerea" title="Via aérea avançada" frameTitle="Via aérea avançada — casos ilustrados" description="Seis casos ilustrados para preparar a abordagem, priorizar oxigenação, confirmar o tubo e reconhecer quando mudar de plano." />;
+      break;
     case "/rcp":
       page = <RcpPage />;
       break;

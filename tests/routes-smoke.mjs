@@ -5,7 +5,7 @@ for (const path of ['/', '/sobre', '/entrar', '/privacidade', '/professor/entrar
   const response = await fetch(`${baseUrl}${path}`, { redirect: 'manual' });
   assert.equal(response.status, 200, `${path} deve ser público`);
 }
-const slugs = ['rcp', 'choque', 'ventilacao-mecanica', 'bls', 'gasometria', 'ecg', 'eletrolitos'];
+const slugs = ['rcp', 'choque', 'ventilacao-mecanica', 'bls', 'gasometria', 'ecg', 'eletrolitos', 'via-aerea'];
 for (const path of ['/professor', ...slugs.flatMap(slug => ['/' + slug, '/simulators/' + slug + '/index.html'])]) {
   const response = await fetch(`${baseUrl}${path}`, { redirect: 'manual' });
   assert.equal(response.status, 303, `${path} deve exigir login`);

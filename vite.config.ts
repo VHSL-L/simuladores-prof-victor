@@ -10,6 +10,7 @@ export default defineConfig({
     rolldownOptions: {
       input: {
         platform: "index.html",
+        viaAerea: "simulators/via-aerea/index.html",
         bls: "simulators/bls/index.html",
         gasometria: "simulators/gasometria/index.html",
         ecg: "simulators/ecg/index.html",

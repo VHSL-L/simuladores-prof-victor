@@ -1,5 +1,11 @@
 # Registro de migração
 
+## Percurso e via aérea avançada — 10/11/2026
+
+- BLS abre o percurso, seguido por ECG, RCP avançada/ACLS, choque, eletrólitos, gasometria, via aérea e ventilação mecânica. Catálogo continua permitindo acesso direto a qualquer módulo.
+- Novo módulo de via aérea: seis casos, 18 questões e imagens originais de equipamentos e capnografia. Roteiros incluem preparo, máscara, confirmação, ausência de CO₂, resgate e transporte.
+- Imagens acompanham a etapa e aparecem no contexto correto na revisão. A nova rota e os arquivos continuam exigindo sessão; apenas o destino pós-login foi ampliado para incluir o módulo.
+
 ## Gabarito por alternativa — 10/11/2026
 
 - As 66 questões de múltipla escolha passaram a comentar especificamente a alternativa incorreta confirmada e a justificar a correta, também na revisão final. São 198 comentários de erros possíveis.

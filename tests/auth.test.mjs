@@ -330,7 +330,7 @@ test('sessão administrativa expirada ou professor bloqueado perde acesso ao pai
 
 test('novos módulos e seus arquivos clínicos exigem sessão e preservam o destino após login', async t => {
   const {request,login}=setup(t); const Cookie=await login();
-  for(const slug of ['bls','gasometria','ecg','eletrolitos']){
+  for(const slug of ['bls','gasometria','ecg','eletrolitos','via-aerea']){
     assert.equal(safeNext('/'+slug),'/'+slug);
     const blocked=await request('/'+slug);assert.equal(blocked.status,303);
     assert.equal(blocked.headers.get('Location'),'/entrar?next=%2F'+slug);
